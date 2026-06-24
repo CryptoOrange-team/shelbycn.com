@@ -40,7 +40,7 @@ export default async function SPDetailPage({ params }: { params: Promise<{ addre
 
   return (
     <div className="max-w-[960px] mx-auto px-5 py-12">
-      <Link href="/tools/sp-explorer" className="font-mono text-xs text-text3 hover:text-text transition-colors">← SP 节点浏览器</Link>
+      <Link href="/tools/sp-explorer" className="font-mono text-xs text-text3 hover:text-text transition-colors">← SP Explorer</Link>
 
       <div className="mt-4 mb-8">
         <div className="font-mono text-[11px] font-medium text-text3 uppercase tracking-wider mb-2">/ SP 详情</div>

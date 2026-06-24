@@ -1,15 +1,10 @@
-import type { Metadata } from "next";
-
-export const metadata: Metadata = { title: "文档" };
-
 export default function DocsPage() {
   return (
-    <div className="max-w-3xl mx-auto px-4 py-12">
-      <h1 className="text-3xl font-bold mb-2">文档</h1>
-      <p className="text-zinc-400 mb-4">Shelby 中文开发者文档。SDK、CLI、MCP Server。</p>
-      <div className="p-8 rounded-xl border border-zinc-800 bg-zinc-900/50 text-center">
-        <p className="text-zinc-500">中文文档即将上线。正在翻译中。</p>
-      </div>
+    <div className="max-w-[960px] mx-auto px-5 py-12">
+      <div className="font-mono text-[11px] font-medium text-text3 uppercase tracking-wider mb-3">/ Docs</div>
+      <h1 className="text-[36px] font-extrabold tracking-tight mb-2">Documentation</h1>
+      <p className="text-sm text-text2 mb-8">Chinese developer documentation for Shelby SDK, CLI, and MCP Server. Translation in progress.</p>
+      <div className="py-16 text-center text-text3 text-sm border border-border rounded-lg">Coming soon. See <a href="https://docs.shelby.xyz" className="text-accent hover:underline">docs.shelby.xyz</a> for official docs.</div>
     </div>
   );
 }
