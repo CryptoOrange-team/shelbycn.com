@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 
 export const metadata: Metadata = {
   title: "Shelby SP 节点浏览器 — 实时存储提供商目录",
@@ -189,9 +190,9 @@ export default async function SPExplorerPage() {
               <tr key={sp.address} className="border-b border-border last:border-0 hover:bg-surface transition-colors">
                 <td className="py-2.5 pl-4 pr-4 font-mono text-text3">{i + 1}</td>
                 <td className="py-2.5 pr-4">
-                  <span className="font-mono text-text2" title={sp.address}>
+                  <Link href={`/tools/sp-explorer/${sp.address}`} className="font-mono text-text2 hover:text-accent transition-colors" title={sp.address}>
                     {shortenAddr(sp.address)}
-                  </span>
+                  </Link>
                 </td>
                 <td className="py-2.5 pr-4 font-mono text-right">{sp.slots}</td>
                 <td className="py-2.5 pr-4 font-mono text-accent font-semibold text-right">{sp.activeSlots}</td>
