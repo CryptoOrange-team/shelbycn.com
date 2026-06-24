@@ -178,38 +178,51 @@ function BlobTable({ blobs, showTime }: { blobs: { name: string; size: number; o
 }
 
 function EventsTable({ events }: { events: { name: string; owner: string; type: string; time: string; hash?: string }[] }) {
+  if (!events || events.length === 0) {
+    return <div className="py-12 text-center text-text3 text-sm">暂无事件数据。</div>;
+  }
+
   return (
     <div>
-      <p className="text-xs text-text2 mb-3">最近 blob 事件。点击 TX 链接跳转到 Aptos Explorer 查看链上详情。</p>
+      <p className="text-xs text-text2 mb-3">最近 blob 事件。共 {events.length} 条。</p>
       <div className="border border-border rounded-lg overflow-x-auto">
         <table className="w-full text-xs">
           <thead><tr className="border-b border-border bg-surface text-left font-mono text-[10px] text-text3 uppercase tracking-wider">
-            <th className="py-2.5 pl-3 pr-2 font-medium">类型</th>
+            <th className="py-2.5 pl-3 pr-2 font-medium w-16">类型</th>
             <th className="py-2.5 px-2 font-medium">Blob</th>
-            <th className="py-2.5 px-2 font-medium">所有者</th>
             <th className="py-2.5 px-2 font-medium">TX</th>
             <th className="py-2.5 pr-3 pl-2 font-medium text-right">时间</th>
           </tr></thead>
           <tbody>
-            {events.map((e,i) => (
-              <tr key={i} className="border-b border-border last:border-0 hover:bg-surface transition-colors">
-                <td className="py-2 pl-3 pr-2"><span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-sm border ${
-                  e.type?.includes("Registered") ? "bg-green-500/10 text-green-400 border-green-500/30" :
-                  e.type?.includes("Written") ? "bg-blue-500/10 text-blue-400 border-blue-500/30" :
-                  e.type?.includes("Deleted") ? "bg-red-500/10 text-red-400 border-red-500/30" :
-                  "bg-surface2 text-text3 border-border"
-                }`}>{e.type||"事件"}</span></td>
-                <td className="py-2 px-2 text-text2 truncate max-w-[250px]" title={e.name}>{shortName(e.name)}</td>
-                <td className="py-2 px-2 font-mono text-text3 text-[10px]">{short(e.owner)}</td>
-                <td className="py-2 px-2">
-                  {e.hash ? (
-                    <a href={`https://explorer.aptoslabs.com/txn/${e.hash}?network=shelbynet`} target="_blank" rel="noopener noreferrer"
-                      className="font-mono text-[10px] text-accent hover:underline">{short(e.hash)}</a>
-                  ) : "—"}
-                </td>
-                <td className="py-2 pr-3 pl-2 font-mono text-text3 text-right text-[10px]">{new Date(e.time).toLocaleString("zh-CN")}</td>
-              </tr>
-            ))}
+            {events.map((e, i) => {
+              const isReg = e.type?.includes("Registered");
+              const isWritten = e.type?.includes("Written");
+              const badgeColor = isReg ? "bg-green-500/10 text-green-400 border-green-500/30" :
+                isWritten ? "bg-blue-500/10 text-blue-400 border-blue-500/30" :
+                "bg-surface2 text-text3 border-border";
+              return (
+                <tr key={i} className="border-b border-border last:border-0 hover:bg-surface transition-colors">
+                  <td className="py-2 pl-3 pr-2">
+                    <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-sm border ${badgeColor}`}>
+                      {e.type || "事件"}
+                    </span>
+                  </td>
+                  <td className="py-2 px-2 text-text2 truncate max-w-[300px]" title={e.name}>
+                    {shortName(e.name)}
+                  </td>
+                  <td className="py-2 px-2">
+                    {e.hash ? (
+                      <a href={`https://explorer.aptoslabs.com/txn/${e.hash}?network=shelbynet`}
+                        target="_blank" rel="noopener noreferrer"
+                        className="font-mono text-[10px] text-accent hover:underline">{short(e.hash)}</a>
+                    ) : "—"}
+                  </td>
+                  <td className="py-2 pr-3 pl-2 font-mono text-text3 text-right text-[10px]">
+                    {e.time ? new Date(e.time).toLocaleString("zh-CN") : "—"}
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>
