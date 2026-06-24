@@ -27,10 +27,12 @@ function timeAgo(us: number): string {
   return `${Math.floor(s / 86400)}d`;
 }
 
-const ACTIVITY_LABELS: Record<string, string> = {
-  read: "读取", write: "写入", delete: "删除",
-  upload: "上传", download: "下载",
-};
+function shortenEventType(et: string): string {
+  if (et.includes("BlobRegisteredEvent")) return "注册";
+  if (et.includes("BlobDeletedEvent")) return "删除";
+  if (et.includes("BlobWrittenEvent")) return "写入";
+  return et.split("::").pop()?.replace("Event", "") ?? et.slice(-20);
+}
 
 export default async function SPExplorerPage() {
   const d = await getShelbyData();
@@ -90,19 +92,25 @@ export default async function SPExplorerPage() {
         <div>
           <h2 className="text-lg font-extrabold mb-4">最近活动</h2>
           <div className="border border-border rounded-lg overflow-hidden">
-            {d.recentActivity.length === 0 && (
+            {d.recentEvents.length === 0 && (
               <div className="p-4 text-xs text-text3 text-center">暂无活动数据</div>
             )}
-            {d.recentActivity.map((a, i) => (
-              <div key={`${a.blob_id}-${i}`} className="flex items-center gap-2 px-3 py-2 border-b border-border last:border-0 hover:bg-surface transition-colors text-[11px]">
-                <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${
-                  a.activity_type === "write" || a.activity_type === "upload" ? "bg-green-400" :
-                  a.activity_type === "delete" ? "bg-red-400" : "bg-blue-400"
-                }`} />
-                <span className="font-semibold text-text2 shrink-0 w-10">{ACTIVITY_LABELS[a.activity_type] ?? a.activity_type}</span>
-                <span className="font-mono text-text3 flex-1 truncate" title={a.blob_id}>{shorten(a.blob_id)}</span>
-                <span className="font-mono text-text3 shrink-0">{a.size ? formatBytes(a.size) : ""}</span>
-                <span className="font-mono text-text3 shrink-0 w-10 text-right">{timeAgo(a.created_at)}</span>
+            {d.recentEvents.map((a, i) => (
+              <div key={`${a.transaction_hash}-${i}`} className="flex items-center gap-2 px-3 py-2 border-b border-border last:border-0 hover:bg-surface transition-colors text-[11px]">
+                <span className="w-1.5 h-1.5 rounded-full bg-green-400 shrink-0" />
+                <span className="font-semibold text-text2 shrink-0">{shortenEventType(a.event_type)}</span>
+                <span className="font-mono text-text3 flex-1 truncate" title={a.blob_name}>{shorten(a.blob_name)}</span>
+                <span className="font-mono text-text3 shrink-0">{new Date(a.timestamp).toLocaleTimeString("zh-CN", { hour: "2-digit", minute: "2-digit" })}</span>
+              </div>
+            ))}
+          </div>
+          <h2 className="text-lg font-extrabold mt-6 mb-4">最新 Blobs</h2>
+          <div className="border border-border rounded-lg overflow-hidden">
+            {d.recentBlobs.map((b, i) => (
+              <div key={i} className="flex items-center gap-2 px-3 py-2 border-b border-border last:border-0 text-[11px]">
+                <span className="font-mono text-text3 flex-1 truncate" title={b.blob_name}>{shorten(b.blob_name)}</span>
+                <span className="font-mono text-accent shrink-0">{formatBytes(parseInt(b.size, 10) || 0)}</span>
+                <span className="font-mono text-text3 shrink-0">{new Date(b.created_at).toLocaleDateString("zh-CN")}</span>
               </div>
             ))}
           </div>

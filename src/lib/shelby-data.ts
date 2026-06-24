@@ -45,17 +45,24 @@ export interface SPNode {
   lastSeen: number;
 }
 
-export interface BlobActivity {
-  blob_id: string;
-  storage_provider: string;
-  activity_type: string;
-  size: number;
-  created_at: number;
+export interface BlobEvent {
+  blob_name: string;
+  owner: string;
+  event_type: string;
+  timestamp: string;
+  transaction_hash: string;
+}
+
+export interface BlobRow {
+  blob_name: string;
+  size: string;
+  owner: string;
+  created_at: string;
 }
 
 export interface SPDetail extends SPNode {
   slots: { placement_group: string; slot_index: number; status: string; updated_at: number }[];
-  recentActivity: BlobActivity[];
+  recentBlobs: BlobRow[];
 }
 
 export interface ShelbyNetworkData {
@@ -67,7 +74,8 @@ export interface ShelbyNetworkData {
   blobCount: number;
   totalSize: number;
   activityCount: number;
-  recentActivity: BlobActivity[];
+  recentEvents: BlobEvent[];
+  recentBlobs: BlobRow[];
   error: string | null;
 }
 
@@ -79,7 +87,8 @@ export async function getShelbyData(): Promise<ShelbyNetworkData> {
       placement_group_slots(order_by: { updated_at: desc }, limit: 2000) { storage_provider status slot_index placement_group updated_at }
       blobs_aggregate { aggregate { count sum { size } } }
       blob_activities_aggregate { aggregate { count } }
-      blob_activities(order_by: { created_at: desc }, limit: $limit) { blob_id storage_provider activity_type size created_at }
+      blob_activities(order_by: { timestamp: desc }, limit: $limit) { blob_name owner event_type timestamp transaction_hash }
+      blobs(order_by: { created_at: desc }, limit: $limit) { blob_name size owner created_at }
     }
   `;
 
@@ -87,7 +96,8 @@ export async function getShelbyData(): Promise<ShelbyNetworkData> {
     const data = await gqlFetch(query, { limit: 20 });
 
     const slots: SlotRow[] = data.placement_group_slots ?? [];
-    const activities: BlobActivity[] = data.blob_activities ?? [];
+    const events: BlobEvent[] = data.blob_activities ?? [];
+    const recentBlobs: BlobRow[] = data.blobs ?? [];
 
     // Aggregate SP nodes
     const spMap = new Map<string, SPNode>();
@@ -122,12 +132,13 @@ export async function getShelbyData(): Promise<ShelbyNetworkData> {
       blobCount: data.blobs_aggregate?.aggregate?.count ?? 0,
       totalSize: parseInt(data.blobs_aggregate?.aggregate?.sum?.size ?? "0", 10) || 0,
       activityCount: data.blob_activities_aggregate?.aggregate?.count ?? 0,
-      recentActivity: activities,
+      recentEvents: events,
+      recentBlobs,
       error: null,
     };
   } catch (e) {
     const msg = e instanceof Error ? e.message : "未知错误";
-    return { nodes: [], totalSPs: 0, activeSPs: 0, totalSlots: 0, activeSlots: 0, blobCount: 0, totalSize: 0, activityCount: 0, recentActivity: [], error: msg };
+    return { nodes: [], totalSPs: 0, activeSPs: 0, totalSlots: 0, activeSlots: 0, blobCount: 0, totalSize: 0, activityCount: 0, recentEvents: [], recentBlobs: [], error: msg };
   }
 }
 
@@ -135,14 +146,14 @@ export async function getSPDetail(address: string): Promise<SPDetail | null> {
   const query = `
     query SPDetail($addr: String!) {
       placement_group_slots(where: { storage_provider: { _eq: $addr } }, order_by: { updated_at: desc }, limit: 200) { placement_group slot_index status updated_at }
-      blob_activities(where: { storage_provider: { _eq: $addr } }, order_by: { created_at: desc }, limit: 20) { blob_id activity_type size created_at }
+      blobs(where: { owner: { _eq: $addr } }, order_by: { created_at: desc }, limit: 20) { blob_name size created_at }
     }
   `;
 
   try {
     const data = await gqlFetch(query, { addr: address });
     const slots = data.placement_group_slots ?? [];
-    const activities = data.blob_activities ?? [];
+    const blobs = data.blobs ?? [];
 
     return {
       address,
@@ -152,7 +163,7 @@ export async function getSPDetail(address: string): Promise<SPDetail | null> {
       vacatedSlots: slots.filter((s: SlotRow) => s.status === "vacated").length,
       lastSeen: slots.length > 0 ? Math.max(...slots.map((s: SlotRow) => s.updated_at)) : 0,
       slots: slots.map((s: SlotRow) => ({ placement_group: s.placement_group, slot_index: s.slot_index, status: s.status, updated_at: s.updated_at })),
-      recentActivity: activities,
+      recentBlobs: blobs.map((b: BlobRow) => ({ blob_name: b.blob_name, size: b.size, owner: b.owner, created_at: b.created_at })),
     };
   } catch {
     return null;

@@ -95,16 +95,15 @@ export default async function SPDetailPage({ params }: { params: Promise<{ addre
         </div>
 
         <div>
-          <h2 className="text-lg font-extrabold mb-3">最近活动</h2>
+          <h2 className="text-lg font-extrabold mb-3">最近 Blobs</h2>
           <div className="border border-border rounded-lg overflow-hidden">
-            {sp.recentActivity.length === 0 && <div className="p-4 text-xs text-text3 text-center">暂无</div>}
-            {sp.recentActivity.map((a, i) => (
+            {sp.recentBlobs.length === 0 && <div className="p-4 text-xs text-text3 text-center">暂无</div>}
+            {sp.recentBlobs.map((b, i) => (
               <div key={i} className="flex items-center gap-2 px-3 py-2 border-b border-border last:border-0 text-[11px]">
-                <span className={`w-1.5 h-1.5 rounded-full ${
-                  a.activity_type === "write" || a.activity_type === "upload" ? "bg-green-400" : "bg-blue-400"
-                }`} />
-                <span className="font-semibold text-text2">{a.activity_type}</span>
-                <span className="font-mono text-text3 ml-auto">{timeAgo(a.created_at)}</span>
+                <span className="w-1.5 h-1.5 rounded-full bg-blue-400 shrink-0" />
+                <span className="font-mono text-text3 flex-1 truncate" title={b.blob_name}>{shorten(b.blob_name)}</span>
+                <span className="font-mono text-accent shrink-0">{b.size ? `${(parseInt(b.size, 10) / 1024).toFixed(0)}KB` : ""}</span>
+                <span className="font-mono text-text3 shrink-0">{b.created_at ? new Date(b.created_at).toLocaleDateString("zh-CN") : ""}</span>
               </div>
             ))}
           </div>
