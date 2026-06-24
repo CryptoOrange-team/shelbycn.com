@@ -19,12 +19,12 @@ async function gf(query: string, variables?: Record<string, unknown>) {
 
 // ── Types ──
 interface SlotRow { storage_provider: string; status: "active" | "joining" | "vacated"; slot_index: number; placement_group: string; updated_at: number; }
-interface BlobRow { blob_name: string; size: string; owner: string; created_at: string; num_chunksets: string; }
+interface BlobRow { blob_name: string; size: string; owner: string; created_at: string; expires_at?: string; is_deleted?: boolean; is_written?: boolean; updated_at?: string; num_chunksets: string; }
 interface EventRow { blob_name: string; owner: string; event_type: string; timestamp: string; transaction_hash?: string; }
 interface PSRow { last_success_version: string; last_transaction_timestamp: string; last_updated: string; }
 
 export interface SPNode { address: string; activeSlots: number; totalSlots: number; joiningSlots: number; vacatedSlots: number; lastSeen: number; }
-export interface BlobItem { name: string; size: number; owner: string; chunksets: number; created: string; }
+export interface BlobItem { name: string; size: number; owner: string; chunksets: number; created: string; expires?: string; isDeleted?: boolean; isWritten?: boolean; }
 export interface NetStatus { lastVersion: number; lastTxnTime: string; lastUpdated: string; }
 
 export interface SPDetail extends SPNode {
@@ -57,8 +57,8 @@ export async function getShelbyData(sort: string = "active", search: string = ""
       blobs_aggregate { aggregate { count sum { size } } }
       blob_activities_aggregate { aggregate { count } }
       blob_activities(order_by: { timestamp: desc }, limit: 25) { blob_name owner event_type timestamp transaction_hash }
-      top_blobs: blobs(order_by: { size: desc }, limit: 50) { blob_name size owner created_at num_chunksets }
-      recent_blobs: blobs(order_by: { created_at: desc }, limit: 30) { blob_name size owner created_at num_chunksets }
+      top_blobs: blobs(order_by: { size: desc }, limit: 50) { blob_name size owner created_at num_chunksets expires_at is_deleted is_written }
+      recent_blobs: blobs(order_by: { created_at: desc }, limit: 30) { blob_name size owner created_at num_chunksets expires_at is_deleted is_written }
       processor_status(limit: 1, order_by: { last_updated: desc }) { last_success_version last_transaction_timestamp last_updated }
     }
   `;
@@ -90,8 +90,8 @@ export async function getShelbyData(sort: string = "active", search: string = ""
       activityCount: data.blob_activities_aggregate?.aggregate?.count ?? 0,
       status: ps.length > 0 ? { lastVersion: parseInt(ps[0].last_success_version, 10), lastTxnTime: ps[0].last_transaction_timestamp, lastUpdated: ps[0].last_updated } : null,
       events: events.map(e => ({ name: e.blob_name, owner: e.owner, type: e.event_type.split("::").pop()?.replace("Event", "") ?? "", time: e.timestamp, hash: e.transaction_hash })),
-      recentBlobs: recentBlobsRaw.map(b => ({ name: b.blob_name, size: parseInt(b.size, 10) || 0, owner: b.owner, chunksets: parseInt(b.num_chunksets, 10) || 0, created: b.created_at })),
-      topBlobs: topBlobs.map(b => ({ name: b.blob_name, size: parseInt(b.size, 10) || 0, owner: b.owner, chunksets: parseInt(b.num_chunksets, 10) || 0, created: b.created_at })),
+      recentBlobs: recentBlobsRaw.map(b => ({ name: b.blob_name, size: parseInt(b.size, 10) || 0, owner: b.owner, chunksets: parseInt(b.num_chunksets, 10) || 0, created: b.created_at, expires: b.expires_at, isDeleted: b.is_deleted, isWritten: b.is_written })),
+      topBlobs: topBlobs.map(b => ({ name: b.blob_name, size: parseInt(b.size, 10) || 0, owner: b.owner, chunksets: parseInt(b.num_chunksets, 10) || 0, created: b.created_at, expires: b.expires_at, isDeleted: b.is_deleted, isWritten: b.is_written })),
       error: null,
     };
   } catch (e) { return emptyData(e instanceof Error ? e.message : "未知错误"); }
@@ -116,7 +116,7 @@ export async function getSPDetail(address: string): Promise<SPDetail | null> {
       vacatedSlots: slots.filter((s: SlotRow) => s.status === "vacated").length,
       lastSeen: slots.length > 0 ? Math.max(...slots.map((s: SlotRow) => s.updated_at)) : 0,
       slots: slots.map((s: SlotRow) => ({ placement_group: s.placement_group, slot_index: s.slot_index, status: s.status, updated_at: s.updated_at })),
-      blobs: blobs.map((b: BlobRow) => ({ name: b.blob_name, size: parseInt(b.size, 10) || 0, owner: "", chunksets: parseInt(b.num_chunksets, 10) || 0, created: b.created_at })),
+      blobs: blobs.map((b: BlobRow) => ({ name: b.blob_name, size: parseInt(b.size, 10) || 0, owner: "", chunksets: parseInt(b.num_chunksets, 10) || 0, created: b.created_at, expires: b.expires_at, isDeleted: b.is_deleted })),
     };
   } catch { return null; }
 }

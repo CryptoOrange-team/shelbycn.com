@@ -177,7 +177,7 @@ function BlobTab({topBlobs,recentBlobs}:{topBlobs:{name:string;size:number;owner
   );
 }
 
-function BlobTable({blobs,showTime}:{blobs:{name:string;size:number;owner:string;chunksets:number;created:string}[],showTime?:boolean}) {
+function BlobTable({blobs,showTime}:{blobs:{name:string;size:number;owner:string;chunksets:number;created:string;expires?:string;isDeleted?:boolean;isWritten?:boolean}[],showTime?:boolean}) {
   if(!blobs||blobs.length===0)return<div className="py-12 text-center text-text3 text-sm">暂无数据。</div>;
   return (
     <div className="border border-border rounded-xl overflow-hidden">
@@ -186,21 +186,33 @@ function BlobTable({blobs,showTime}:{blobs:{name:string;size:number;owner:string
           <th className="py-2.5 pl-4 pr-2 font-medium w-8">#</th>
           <th className="py-2.5 px-2 font-medium">文件名</th>
           <th className="py-2.5 px-2 font-medium text-right">大小</th>
+          <th className="py-2.5 px-2 font-medium">状态</th>
           <th className="py-2.5 px-2 font-medium hidden sm:table-cell">所有者</th>
           <th className="py-2.5 px-2 font-medium text-right">分片</th>
-          {showTime&&<th className="py-2.5 pr-4 pl-2 font-medium text-right">时间</th>}
+          {showTime&&<th className="py-2.5 pr-4 pl-2 font-medium text-right">已存</th>}
         </tr></thead>
         <tbody>
-          {blobs.map((b,i)=>(
-            <tr key={i} className="border-b border-border last:border-0 hover:bg-surface/50 transition-colors">
-              <td className="py-2 pl-4 pr-2 font-mono text-text3">{i+1}</td>
-              <td className="py-2 px-2 text-text2 truncate max-w-[200px] sm:max-w-[350px]" title={b.name}>{shortName(b.name)}</td>
-              <td className="py-2 px-2 font-mono text-accent font-semibold text-right">{fmtB(b.size)}</td>
-              <td className="py-2 px-2 font-mono text-text3 text-[10px] hidden sm:table-cell">{short(b.owner)}</td>
-              <td className="py-2 px-2 font-mono text-text3 text-right">{b.chunksets}</td>
-              {showTime&&<td className="py-2 pr-4 pl-2 font-mono text-text3 text-right text-[10px]">{ago(parseInt(b.created,10)/1000)}</td>}
-            </tr>
-          ))}
+          {blobs.map((b,i)=>{
+            const deleted = b.isDeleted;
+            const written = b.isWritten !== false;
+            const expSoon = b.expires && parseInt(b.expires,10) < Date.now()*1000 + 86400_000_000; // 1 day
+            let badge, badgeStyle;
+            if (deleted) { badge="已删除"; badgeStyle="bg-red-500/10 text-red-400 border-red-500/30"; }
+            else if (!written) { badge="写入中"; badgeStyle="bg-yellow-500/10 text-yellow-400 border-yellow-500/30"; }
+            else if (expSoon) { badge="即将过期"; badgeStyle="bg-yellow-500/10 text-yellow-400 border-yellow-500/30"; }
+            else { badge="活跃"; badgeStyle="bg-green-500/10 text-green-400 border-green-500/30"; }
+            return (
+              <tr key={i} className="border-b border-border last:border-0 hover:bg-surface/50 transition-colors">
+                <td className="py-2 pl-4 pr-2 font-mono text-text3">{i+1}</td>
+                <td className="py-2 px-2 text-text2 truncate max-w-[180px] sm:max-w-[300px]" title={b.name}>{shortName(b.name)}</td>
+                <td className="py-2 px-2 font-mono text-accent font-semibold text-right">{fmtB(b.size)}</td>
+                <td className="py-2 px-2"><span className={`text-[9px] font-semibold px-1.5 py-0.5 rounded-sm border ${badgeStyle}`}>{badge}</span></td>
+                <td className="py-2 px-2 font-mono text-text3 text-[10px] hidden sm:table-cell">{short(b.owner)}</td>
+                <td className="py-2 px-2 font-mono text-text3 text-right">{b.chunksets}</td>
+                {showTime&&<td className="py-2 pr-4 pl-2 font-mono text-text3 text-right text-[10px]">{ago(parseInt(b.created,10)/1000)}</td>}
+              </tr>
+            );
+          })}
         </tbody>
       </table>
     </div>

@@ -101,6 +101,7 @@ export default async function SPDetailPage({ params }: { params: Promise<{ addre
                 <span className="font-mono text-text3 w-4 text-right shrink-0">{i + 1}</span>
                 <span className="flex-1 min-w-0 truncate text-text2" title={b.name}>{shortName(b.name)}</span>
                 <span className="font-mono text-accent font-semibold shrink-0">{fmtB(b.size)}</span>
+                <span className={`text-[9px] font-semibold px-1 py-0.5 rounded-sm border shrink-0 ${b.isDeleted?"bg-red-500/10 text-red-400 border-red-500/30":"bg-green-500/10 text-green-400 border-green-500/30"}`}>{b.isDeleted?"已删除":"活跃"}</span>
                 <span className="font-mono text-text3 shrink-0 text-[10px]">{b.created ? new Date(parseInt(b.created, 10) / 1000).toLocaleDateString("zh-CN") : ""}</span>
               </div>
             ))}
