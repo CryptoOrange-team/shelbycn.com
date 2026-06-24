@@ -14,22 +14,22 @@ export default function Home() {
 function Hero() {
   return (
     <section className="pt-14 pb-10">
-      <div className="font-mono text-[11px] font-medium text-[var(--c-text3)] uppercase tracking-wider mb-4">
+      <div className="font-mono text-[11px] font-medium text-text3 uppercase tracking-wider mb-4">
         / Shelby Protocol 中文技术社区
       </div>
       <h1 className="text-[40px] font-extrabold leading-[1.12] mb-3 max-w-[680px] tracking-tight">
         为 AI 时代重新定义存储
       </h1>
-      <p className="text-base text-[var(--c-text2)] max-w-[560px] mb-6 leading-relaxed">
+      <p className="text-base text-text2 max-w-[560px] mb-6 leading-relaxed">
         Shelby 是 Aptos Labs 与 Jump Crypto 合作开发的热存储协议。亚秒级读取、比 AWS 便宜 70%、链上可验证——专为 AI 训练数据、流媒体和高频读取场景设计。
       </p>
       <div className="flex gap-3 flex-wrap">
         <a href="/learn/what-is-shelby"
-          className="px-5 py-2 text-sm font-bold bg-[#f97316] text-white rounded transition-colors hover:brightness-110">
+          className="px-5 py-2 text-sm font-bold bg-accent text-white rounded hover:brightness-110 transition-colors">
           了解 Shelby
         </a>
         <a href="/learn/testnet-guide"
-          className="px-5 py-2 text-sm font-semibold border border-[var(--c-border)] text-[var(--c-text)] rounded hover:border-[#f97316] hover:bg-[var(--c-surface)] transition-colors">
+          className="px-5 py-2 text-sm font-semibold border border-border text-text rounded hover:border-accent hover:bg-surface transition-colors">
           测试网体验指南
         </a>
       </div>
@@ -39,23 +39,22 @@ function Hero() {
 
 function Stats() {
   const items = [
-    { value: "$0.01", unit: "/GB·月", label: "存储成本", sub: "比 AWS 便宜 70%" },
-    { value: "<2×", unit: "", label: "数据冗余", sub: "Clay 纠删码" },
-    { value: "600ms", unit: "", label: "最终确认", sub: "Aptos 高性能结算" },
-    { value: "30+", unit: " 城市", label: "光纤网络", sub: "DoubleZero 骨干网" },
+    { value: "$0.01", unit: "/GB·月", label: "存储成本" },
+    { value: "<2×", unit: "", label: "数据冗余" },
+    { value: "600ms", unit: "", label: "最终确认" },
+    { value: "30+", unit: " 城市", label: "光纤网络" },
   ];
 
   return (
     <section className="py-8">
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-px bg-[var(--c-border)] rounded overflow-hidden">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-px bg-border rounded overflow-hidden">
         {items.map((s, i) => (
-          <div key={i} className="bg-[var(--c-surface)] p-5 text-center">
-            <div className="font-mono text-[28px] font-extrabold text-[#f97316] leading-none mb-1">
+          <div key={i} className="bg-surface p-5 text-center">
+            <div className="font-mono text-[28px] font-extrabold text-accent leading-none mb-1">
               {s.value}
-              {s.unit && <span className="text-xs text-[var(--c-text3)] font-medium">{s.unit}</span>}
+              {s.unit && <span className="text-xs text-text3 font-medium">{s.unit}</span>}
             </div>
-            <div className="text-[11px] font-semibold text-[var(--c-text)] uppercase tracking-wide">{s.label}</div>
-            <div className="text-[10px] text-[var(--c-text3)] mt-0.5">{s.sub}</div>
+            <div className="text-[11px] font-semibold uppercase tracking-wide">{s.label}</div>
           </div>
         ))}
       </div>
@@ -73,13 +72,13 @@ function QuickLinks() {
 
   return (
     <section className="py-8">
-      <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-px bg-[var(--c-border)] rounded overflow-hidden">
+      <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-px bg-border rounded overflow-hidden">
         {links.map((l, i) => (
           <a key={i} href={l.href}
-            className="bg-[var(--c-surface)] p-5 hover:bg-[var(--c-surface2)] transition-colors group flex flex-col gap-2">
-            <h3 className="font-bold text-sm group-hover:text-[#f97316] transition-colors">{l.title}</h3>
-            <p className="text-xs text-[var(--c-text2)] leading-relaxed flex-1">{l.desc}</p>
-            <span className="font-mono text-[10px] text-[var(--c-text3)] group-hover:text-[#f97316]">→</span>
+            className="bg-surface p-5 hover:bg-surface2 transition-colors group flex flex-col gap-2">
+            <h3 className="font-bold text-sm group-hover:text-accent transition-colors">{l.title}</h3>
+            <p className="text-xs text-text2 leading-relaxed flex-1">{l.desc}</p>
+            <span className="font-mono text-[10px] text-text3 group-hover:text-accent">→</span>
           </a>
         ))}
       </div>
@@ -99,34 +98,32 @@ function ContentFeed() {
     { tag: "指南", title: "SP 节点部署实操指南——从硬件选型到监控面板", date: "06-05" },
   ];
 
-  const isAccent = (t: string) => t === "指南";
-
   return (
     <section className="py-8">
-      <div className="font-mono text-[11px] font-medium text-[var(--c-text3)] uppercase tracking-wider mb-3">
+      <div className="font-mono text-[11px] font-medium text-text3 uppercase tracking-wider mb-3">
         / 最新内容
       </div>
-      <div className="border border-[var(--c-border)] rounded overflow-hidden">
+      <div className="border border-border rounded overflow-hidden">
         {posts.map((p, i) => (
           <a key={i} href="#"
-            className="flex items-center gap-3 px-4 py-3 border-b border-[var(--c-border)] last:border-0 hover:bg-[var(--c-surface)] transition-colors group">
-            <span className="font-mono text-[11px] text-[var(--c-text3)] w-5 text-right shrink-0">
+            className="flex items-center gap-3 px-4 py-3 border-b border-border last:border-0 hover:bg-surface transition-colors group">
+            <span className="font-mono text-[11px] text-text3 w-5 text-right shrink-0">
               {(i + 1).toString().padStart(2, "0")}
             </span>
-            <span className="font-semibold text-sm group-hover:text-[#f97316] transition-colors flex-1 min-w-0 truncate">
+            <span className="font-semibold text-sm group-hover:text-accent transition-colors flex-1 min-w-0 truncate">
               {p.title}
             </span>
             <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-sm shrink-0 ${
-              isAccent(p.tag) ? "bg-[#f97316] text-white" : "bg-[var(--c-surface2)] text-[var(--c-text2)] border border-[var(--c-border)]"
+              p.tag === "指南" ? "bg-accent text-white" : "bg-surface2 text-text2 border border-border"
             }`}>
               {p.tag}
             </span>
-            <span className="font-mono text-[11px] text-[var(--c-text3)] w-12 text-right shrink-0">{p.date}</span>
+            <span className="font-mono text-[11px] text-text3 w-12 text-right shrink-0">{p.date}</span>
           </a>
         ))}
       </div>
       <div className="text-center mt-4">
-        <a href="/blog" className="font-mono text-xs text-[var(--c-text2)] hover:text-[var(--c-text)] transition-colors">
+        <a href="/blog" className="font-mono text-xs text-text2 hover:text-text transition-colors">
           查看全部 →
         </a>
       </div>
@@ -144,26 +141,26 @@ function Comparison() {
 
   return (
     <section className="py-8">
-      <div className="font-mono text-[11px] font-medium text-[var(--c-text3)] uppercase tracking-wider mb-3">
+      <div className="font-mono text-[11px] font-medium text-text3 uppercase tracking-wider mb-3">
         / 赛道全景
       </div>
-      <div className="border border-[var(--c-border)] rounded overflow-x-auto">
+      <div className="border border-border rounded overflow-x-auto">
         <table className="w-full text-xs">
           <thead>
-            <tr className="border-b border-[var(--c-border)] bg-[var(--c-surface)] text-left font-mono text-[10px] text-[var(--c-text3)] uppercase tracking-wider">
+            <tr className="border-b border-border bg-surface text-left font-mono text-[10px] text-text3 uppercase tracking-wider">
               <th className="py-2.5 pl-4 pr-6 font-medium" />
               <th className="py-2.5 px-5 font-medium">Filecoin</th>
               <th className="py-2.5 px-5 font-medium">Walrus</th>
               <th className="py-2.5 px-5 font-medium">Arweave</th>
-              <th className="py-2.5 pr-4 pl-5 font-medium text-[#f97316]">Shelby</th>
+              <th className="py-2.5 pr-4 pl-5 font-medium text-accent">Shelby</th>
             </tr>
           </thead>
           <tbody>
-            {rows.map((row) => (
-              <tr key={row.label} className="border-b border-[var(--c-border)] last:border-0 hover:bg-[var(--c-surface)] transition-colors">
+            {rows.map(row => (
+              <tr key={row.label} className="border-b border-border last:border-0 hover:bg-surface transition-colors">
                 <td className="py-2.5 pl-4 pr-6 font-semibold">{row.label}</td>
                 {row.vals.map((v, j) => (
-                  <td key={j} className={`py-2.5 px-5 text-[var(--c-text2)] ${j === 3 ? "text-[#f97316] font-semibold" : ""}`}>
+                  <td key={j} className={`py-2.5 px-5 text-text2 ${j === 3 ? "text-accent font-semibold" : ""}`}>
                     {v}
                   </td>
                 ))}
@@ -179,18 +176,18 @@ function Comparison() {
 function CTA() {
   return (
     <section className="py-12">
-      <div className="border border-[var(--c-border)] rounded p-10 text-center bg-[var(--c-surface)]">
+      <div className="border border-border rounded p-10 text-center bg-surface">
         <h2 className="text-2xl font-extrabold mb-2">加入 Shelby 中文社区</h2>
-        <p className="text-sm text-[var(--c-text2)] mb-6 max-w-md mx-auto">
+        <p className="text-sm text-text2 mb-6 max-w-md mx-auto">
           纯技术讨论。获取最新生态动态、测试网教程和开发者资源。
         </p>
         <div className="flex gap-3 justify-center flex-wrap">
           <a href="https://t.me/ShelbyCN"
-            className="px-6 py-2.5 text-sm font-bold bg-[#f97316] text-white rounded hover:brightness-110 transition-colors">
+            className="px-6 py-2.5 text-sm font-bold bg-accent text-white rounded hover:brightness-110 transition-colors">
             Telegram 频道
           </a>
           <a href="https://t.me/ShelbyCN_Chat"
-            className="px-6 py-2.5 text-sm font-semibold border border-[var(--c-border)] text-[var(--c-text)] rounded hover:border-[#f97316] transition-colors">
+            className="px-6 py-2.5 text-sm font-semibold border border-border text-text rounded hover:border-accent transition-colors">
             Telegram 讨论群
           </a>
         </div>
