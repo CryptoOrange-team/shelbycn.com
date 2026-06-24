@@ -2,8 +2,7 @@ export default function Home() {
   return (
     <div className="max-w-[960px] mx-auto px-5">
       <Hero />
-      <Stats />
-      <QuickLinks />
+      <CardGrid />
       <ContentFeed />
       <Comparison />
       <CTA />
@@ -13,23 +12,21 @@ export default function Home() {
 
 function Hero() {
   return (
-    <section className="pt-14 pb-10">
-      <div className="font-mono text-[11px] font-medium text-text3 uppercase tracking-wider mb-4">
-        / Shelby Protocol 中文技术社区
-      </div>
-      <h1 className="text-[40px] font-extrabold leading-[1.12] mb-3 max-w-[680px] tracking-tight">
-        为 AI 时代重新定义存储
+    <section className="pt-16 pb-12">
+      <h1 className="text-[44px] font-extrabold leading-[1.1] mb-4 max-w-[720px] tracking-tight">
+        Shelby Protocol 中文技术社区
       </h1>
-      <p className="text-base text-text2 max-w-[560px] mb-6 leading-relaxed">
-        Shelby 是 Aptos Labs 与 Jump Crypto 合作开发的热存储协议。亚秒级读取、比 AWS 便宜 70%、链上可验证——专为 AI 训练数据、流媒体和高频读取场景设计。
+      <p className="text-lg text-text2 max-w-[600px] mb-8 leading-relaxed">
+        Shelby 是 Aptos Labs 与 Jump Crypto 合作开发的热存储协议。
+        亚秒级读取、比 AWS 便宜 70%、链上可验证——专为 AI 训练数据、流媒体和高频读取场景设计。
       </p>
       <div className="flex gap-3 flex-wrap">
         <a href="/learn/what-is-shelby"
-          className="px-5 py-2 text-sm font-bold bg-accent text-white rounded hover:brightness-110 transition-colors">
-          了解 Shelby
+          className="px-5 py-2.5 text-sm font-bold bg-accent text-white rounded-lg hover:brightness-110 transition-colors">
+          开始了解
         </a>
         <a href="/learn/testnet-guide"
-          className="px-5 py-2 text-sm font-semibold border border-border text-text rounded hover:border-accent hover:bg-surface transition-colors">
+          className="px-5 py-2.5 text-sm font-semibold border border-border text-text rounded-lg hover:border-accent hover:bg-surface transition-colors">
           测试网体验指南
         </a>
       </div>
@@ -37,51 +34,47 @@ function Hero() {
   );
 }
 
-function Stats() {
-  const items = [
-    { value: "$0.01", unit: "/GB·月", label: "存储成本" },
-    { value: "<2×", unit: "", label: "数据冗余" },
-    { value: "600ms", unit: "", label: "最终确认" },
-    { value: "30+", unit: " 城市", label: "光纤网络" },
+function CardGrid() {
+  const sections = [
+    {
+      title: "开始了解",
+      items: [
+        { icon: "01", title: "Shelby 是什么？", desc: "技术架构、Pay-Per-Read 经济模型、与 Filecoin/Walrus/Arweave 的对比。" },
+        { icon: "02", title: "测试网技术体验指南", desc: "零成本了解协议运作机制。钱包配置、文件上传、自动化脚本。" },
+        { icon: "03", title: "去中心化存储赛道全景", desc: "Filecoin、Arweave、Walrus、Storj、Shelby 五维横向对比分析。" },
+      ],
+    },
+    {
+      title: "工具与文档",
+      items: [
+        { icon: "04", title: "SP 节点收益计算器", desc: "基于 Jump Crypto 成本建模。输入存储量和读取率，实时预估月收益。" },
+        { icon: "05", title: "中文开发者文档", desc: "SDK、CLI、MCP Server 快速入门、API 参考、可运行的示例项目。" },
+        { icon: "06", title: "中文技术社区", desc: "Telegram 实时讨论、节点运维交流。纯技术讨论，不喊单不带单。" },
+      ],
+    },
   ];
 
   return (
-    <section className="py-8">
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-px bg-border rounded overflow-hidden">
-        {items.map((s, i) => (
-          <div key={i} className="bg-surface p-5 text-center">
-            <div className="font-mono text-[28px] font-extrabold text-accent leading-none mb-1">
-              {s.value}
-              {s.unit && <span className="text-xs text-text3 font-medium">{s.unit}</span>}
-            </div>
-            <div className="text-[11px] font-semibold uppercase tracking-wide">{s.label}</div>
+    <section className="py-10">
+      {sections.map((section, si) => (
+        <div key={si} className={si > 0 ? "mt-12" : ""}>
+          <h2 className="text-xl font-extrabold mb-6">{section.title}</h2>
+          <div className="grid sm:grid-cols-3 gap-4">
+            {section.items.map((item) => (
+              <a key={item.icon} href="#"
+                className="card group block p-6 rounded-lg border border-border bg-surface hover:bg-surface2 hover:border-accent/30 transition-all">
+                <div className="flex items-center gap-3 mb-3">
+                  <span className="font-mono text-xs font-bold text-accent bg-accent/10 px-2 py-0.5 rounded">
+                    {item.icon}
+                  </span>
+                </div>
+                <h3 className="font-bold text-sm mb-1.5 group-hover:text-accent transition-colors">{item.title}</h3>
+                <p className="text-xs text-text2 leading-relaxed">{item.desc}</p>
+              </a>
+            ))}
           </div>
-        ))}
-      </div>
-    </section>
-  );
-}
-
-function QuickLinks() {
-  const links = [
-    { title: "测试网体验指南", desc: "零成本了解协议运作。钱包配置、文件上传、自动化脚本。", href: "/learn/testnet-guide" },
-    { title: "SP 收益计算器", desc: "基于 Jump Crypto 成本建模。预估收益与回本周期。", href: "/tools/sp-calculator" },
-    { title: "Shelby 协议解析", desc: "技术架构、经济模型、与竞品横向对比。", href: "/learn/what-is-shelby" },
-    { title: "中文开发者文档", desc: "SDK、CLI、MCP Server 快速入门与 API 参考。", href: "/docs" },
-  ];
-
-  return (
-    <section className="py-8">
-      <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-px bg-border rounded overflow-hidden">
-        {links.map((l, i) => (
-          <a key={i} href={l.href}
-            className="bg-surface p-5 hover:bg-surface2 transition-colors group flex flex-col gap-2">
-            <h3 className="font-bold text-sm group-hover:text-accent transition-colors">{l.title}</h3>
-            <p className="text-xs text-text2 leading-relaxed flex-1">{l.desc}</p>
-            <span className="font-mono text-[10px] text-text3 group-hover:text-accent">→</span>
-          </a>
-        ))}
-      </div>
+        </div>
+      ))}
     </section>
   );
 }
@@ -99,11 +92,9 @@ function ContentFeed() {
   ];
 
   return (
-    <section className="py-8">
-      <div className="font-mono text-[11px] font-medium text-text3 uppercase tracking-wider mb-3">
-        / 最新内容
-      </div>
-      <div className="border border-border rounded overflow-hidden">
+    <section className="py-10">
+      <h2 className="text-xl font-extrabold mb-6">最新内容</h2>
+      <div className="border border-border rounded-lg overflow-hidden">
         {posts.map((p, i) => (
           <a key={i} href="#"
             className="flex items-center gap-3 px-4 py-3 border-b border-border last:border-0 hover:bg-surface transition-colors group">
@@ -140,11 +131,9 @@ function Comparison() {
   ];
 
   return (
-    <section className="py-8">
-      <div className="font-mono text-[11px] font-medium text-text3 uppercase tracking-wider mb-3">
-        / 赛道全景
-      </div>
-      <div className="border border-border rounded overflow-x-auto">
+    <section className="py-10">
+      <h2 className="text-xl font-extrabold mb-6">赛道全景</h2>
+      <div className="border border-border rounded-lg overflow-x-auto">
         <table className="w-full text-xs">
           <thead>
             <tr className="border-b border-border bg-surface text-left font-mono text-[10px] text-text3 uppercase tracking-wider">
@@ -176,18 +165,18 @@ function Comparison() {
 function CTA() {
   return (
     <section className="py-12">
-      <div className="border border-border rounded p-10 text-center bg-surface">
-        <h2 className="text-2xl font-extrabold mb-2">加入 Shelby 中文社区</h2>
-        <p className="text-sm text-text2 mb-6 max-w-md mx-auto">
+      <div className="border border-border rounded-lg p-12 text-center bg-surface">
+        <h2 className="text-2xl font-extrabold mb-3">加入 Shelby 中文社区</h2>
+        <p className="text-sm text-text2 mb-8 max-w-md mx-auto">
           纯技术讨论。获取最新生态动态、测试网教程和开发者资源。
         </p>
         <div className="flex gap-3 justify-center flex-wrap">
           <a href="https://t.me/ShelbyCN"
-            className="px-6 py-2.5 text-sm font-bold bg-accent text-white rounded hover:brightness-110 transition-colors">
+            className="px-6 py-2.5 text-sm font-bold bg-accent text-white rounded-lg hover:brightness-110 transition-colors">
             Telegram 频道
           </a>
           <a href="https://t.me/ShelbyCN_Chat"
-            className="px-6 py-2.5 text-sm font-semibold border border-border text-text rounded hover:border-accent transition-colors">
+            className="px-6 py-2.5 text-sm font-semibold border border-border text-text rounded-lg hover:border-accent transition-colors">
             Telegram 讨论群
           </a>
         </div>
