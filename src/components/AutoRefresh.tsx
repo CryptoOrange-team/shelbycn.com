@@ -1,24 +1,22 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 export function AutoRefresh({ interval = 30 }: { interval?: number }) {
-  const router = useRouter();
   const [count, setCount] = useState(interval);
 
   useEffect(() => {
     const timer = setInterval(() => {
       setCount((c) => {
         if (c <= 1) {
-          router.refresh();
+          window.location.reload();
           return interval;
         }
         return c - 1;
       });
     }, 1000);
     return () => clearInterval(timer);
-  }, [router, interval]);
+  }, [interval]);
 
   return (
     <div className="flex items-center gap-2 text-text3">
