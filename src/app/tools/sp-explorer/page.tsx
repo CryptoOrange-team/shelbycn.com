@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { getShelbyData } from "@/lib/shelby-data";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "Shelby SP 节点浏览器 — 实时存储提供商目录",
   description: "浏览 ShelbyNet 所有存储提供商。实时数据——3218万 blobs、8363万次活动。",
