@@ -3,9 +3,12 @@
 const ENDPOINT = "https://api.shelbynet.aptoslabs.com/nocode/v1/public/alias/shelby/shelbynet/v1/graphql";
 
 function getApiKey(): string {
-  if (process.env.SHELBY_API_KEY) return process.env.SHELBY_API_KEY;
-  if (process.env.NEXT_PUBLIC_SHELBY_API_KEY) return process.env.NEXT_PUBLIC_SHELBY_API_KEY;
-  return "";
+  const key = process.env.SHELBY_API_KEY ?? process.env.NEXT_PUBLIC_SHELBY_API_KEY ?? "";
+  return key;
+}
+
+function hasApiKey(): boolean {
+  return getApiKey().length > 0;
 }
 
 function headers(): Record<string, string> {
@@ -70,6 +73,10 @@ export async function getShelbyData(): Promise<ShelbyNetworkData> {
   `;
 
   try {
+    if (!hasApiKey()) {
+      return emptyResult("API key 未配置。请在 Vercel 环境变量中设置 SHELBY_API_KEY。");
+    }
+
     const res = await fetch(ENDPOINT, {
       method: "POST",
       headers: headers(),
@@ -79,7 +86,7 @@ export async function getShelbyData(): Promise<ShelbyNetworkData> {
 
     if (!res.ok) {
       const text = await res.text();
-      return emptyResult(`GraphQL 返回错误 (${res.status}): ${text.slice(0, 200)}`);
+      return emptyResult(`GraphQL ${res.status}: ${text.slice(0, 200)}`);
     }
 
     const json = await res.json();
