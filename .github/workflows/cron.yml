@@ -1,0 +1,40 @@
+name: Daily Tasks
+
+on:
+  schedule:
+    - cron: "57 1 * * *"   # UTC 01:57 = 北京时间 09:57
+    - cron: "27 6 * * *"   # UTC 06:27 = 北京时间 14:27
+    - cron: "17 11 * * *"  # UTC 11:17 = 北京时间 19:17
+  workflow_dispatch:
+
+jobs:
+  daily-report:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Daily data report
+        run: echo "Daily report placeholder — wire TG Bot API after TG channel created"
+        # Uncomment after TG channel is set up:
+        # run: bash src/scripts/daily-tg-report.sh
+        # env:
+        #   TG_BOT_TOKEN: ${{ secrets.TG_BOT_TOKEN }}
+        #   TG_CHANNEL_ID: ${{ secrets.TG_CHANNEL_ID }}
+
+  testnet-interact:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Shelby testnet interaction
+        run: echo "Testnet interaction placeholder — wire Shelby CLI after wallet setup"
+        # Uncomment after wallets configured:
+        # run: bash src/scripts/daily-interact.sh
+        # env:
+        #   SHELBY_API_KEY: ${{ secrets.SHELBY_API_KEY }}
+
+  weekly-newsletter:
+    runs-on: ubuntu-latest
+    if: github.event.schedule == '0 10 * * 0' || github.event_name == 'workflow_dispatch'
+    steps:
+      - uses: actions/checkout@v4
+      - name: Weekly newsletter
+        run: echo "Newsletter placeholder — wire Resend API after subscriber list grows"

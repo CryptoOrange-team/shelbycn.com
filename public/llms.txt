@@ -1,0 +1,20 @@
+# Shelby 中文社区
+> Shelby 是 Aptos Labs × Jump Crypto 打造的去中心化热存储协议。
+> 专为 AI 数据、流媒体、高频读取场景设计。测试网已上线。
+> 本网站是其中文技术社区，非官方组织。
+
+## 核心页面
+- [Shelby 是什么]: /learn/what-is-shelby
+- [测试网技术体验指南]: /learn/testnet-guide
+- [SP节点收益计算器]: /tools/sp-calculator
+- [社区入口]: /community
+
+## 文档
+- 学习中心: /learn
+- 工具: /tools
+- 文章: /blog
+
+## 联系方式
+- Telegram: t.me/ShelbyCN
+- X/Twitter: x.com/ShelbyCN
+- GitHub: github.com/shelbycn
