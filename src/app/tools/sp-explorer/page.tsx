@@ -249,7 +249,7 @@ function EventsTable({ events }: { events: {name:string;owner:string;type:string
                   <td className="py-2 pl-3 pr-2"><span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-sm border ${c}`}>{e.type||"事件"}</span></td>
                   <td className="py-2 px-2 text-text2 truncate max-w-[200px] sm:max-w-[300px]" title={e.name}>{shortName(e.name)}</td>
                   <td className="py-2 px-2 hidden sm:table-cell">
-                    {e.hash?<a href={`https://explorer.shelby.xyz/shelbynet/txn/${e.hash}`} target="_blank" rel="noopener noreferrer" className="font-mono text-[10px] text-accent hover:underline">{short(e.hash)}</a>:"—"}
+                    {e.hash?<span className="font-mono text-[10px] text-text3" title={e.hash}>{short(e.hash)}</span>:"—"}
                   </td>
                   <td className="py-2 pr-3 pl-2 font-mono text-text3 text-right text-[10px]">{e.time?new Date(e.time).toLocaleString("zh-CN"):"—"}</td>
                 </tr>
