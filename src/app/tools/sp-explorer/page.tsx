@@ -40,6 +40,13 @@ export default async function SPExplorerPage({ searchParams }: { searchParams: P
         <AutoRefresh interval={30} />
       </div>
 
+      {/* Dashboard Legend */}
+      <div className="mb-4 p-3 rounded-xl border border-border bg-surface/30 text-xs text-text3 leading-relaxed">
+        <span className="font-semibold text-text">📊 ShelbyNet 浏览器</span> — 实时监控存储提供商(SP)节点、Blob 数据、链上事件和网络成本。
+        点击表头排序，使用搜索框过滤，右上角 {<span className="font-mono text-accent">30s</span>} 自动刷新。
+        <span className="text-text3 ml-2">数据源: GraphQL 索引器 · {new Date().toLocaleString("zh-CN")}</span>
+      </div>
+
       {/* AI Insight */}
       <div className="mb-6 p-4 rounded-xl border border-border bg-surface/50 backdrop-blur">
         <div className="flex items-start gap-2">
@@ -105,8 +112,8 @@ export default async function SPExplorerPage({ searchParams }: { searchParams: P
 
       {/* Stats Row */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 sm:gap-3 mb-6">
-        <StatBox label="Blobs" value={fmtN(d.blobCount)} />
-        <StatBox label="存储量" value={fmtB(d.totalSize)} accent />
+        <StatBox label="Blobs" value={fmtN(d.blobCount)} change={d.growth.dayBlobs>0?{val:fmtN(d.growth.dayBlobs),up:true}:undefined} />
+        <StatBox label="存储量" value={fmtB(d.totalSize)} accent change={d.growth.daySize>0?{val:fmtB(d.growth.daySize),up:true}:undefined} />
         <StatBox label="活动" value={fmtN(d.activityCount)} />
         <StatBox label="SP 节点" value={`${d.activeSPs}/${d.totalSPs}`} sub="活跃/总" />
         <StatBox label="槽位" value={`${d.activeSlots}/${d.totalSlots}`} sub="活跃/总" />
@@ -180,11 +187,14 @@ export default async function SPExplorerPage({ searchParams }: { searchParams: P
 }
 
 // ── Stat Card ──
-function StatBox({label,value,sub,accent}:{label:string;value:string;sub?:string;accent?:boolean}) {
+function StatBox({label,value,sub,accent,change}:{label:string;value:string;sub?:string;accent?:boolean;change?:{val:string;up:boolean}}) {
   return (
     <div className="bg-surface/70 backdrop-blur border border-border rounded-xl p-3 sm:p-4 hover:border-border-hover transition-colors">
       <div className={`text-lg sm:text-xl font-extrabold leading-none mb-0.5 ${accent?"text-accent":"text-text"}`}>{value}</div>
-      <div className="text-[9px] sm:text-[10px] font-medium text-text3 uppercase tracking-wide">{label}</div>
+      <div className="flex items-center gap-1.5">
+        <span className="text-[9px] sm:text-[10px] font-medium text-text3 uppercase tracking-wide">{label}</span>
+        {change&&<span className={`text-[9px] font-semibold ${change.up?"text-green-400":"text-red-400"}`}>{change.up?"↑":"↓"}{change.val}</span>}
+      </div>
       {sub&&<div className="text-[9px] sm:text-[10px] text-text3 mt-0.5">{sub}</div>}
     </div>
   );
