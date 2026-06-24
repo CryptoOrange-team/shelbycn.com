@@ -159,22 +159,42 @@ export default async function SPExplorerPage({ searchParams }: { searchParams: P
       {tab==="dev"&&<DevResources />}
 
       {tab==="sp"&&d.nodes.length>0&&!search&&(
-        <div className="mt-6 p-4 rounded-xl border border-border bg-surface/50 backdrop-blur">
-          <h2 className="text-xs font-semibold text-text3 uppercase tracking-wider mb-3">SP 对比 · 活跃槽位</h2>
-          <div className="space-y-1.5">
-            {d.nodes.slice(0,10).map(sp=>{
-              const maxSlots = Math.max(...d.nodes.map(n=>n.activeSlots),1);
-              const w = (sp.activeSlots/maxSlots)*100;
-              return (
-                <div key={sp.address} className="flex items-center gap-2 text-[10px]">
-                  <span className="font-mono text-text3 w-16 truncate">{short(sp.address)}</span>
-                  <div className="flex-1 h-3 bg-border rounded-full overflow-hidden">
-                    <div className="h-full bg-accent rounded-full" style={{width:`${w}%`}}/>
+        <div className="mt-6 space-y-6">
+          {/* SP Bar Chart */}
+          <div className="p-4 rounded-xl border border-border bg-surface/50 backdrop-blur">
+            <h2 className="text-xs font-semibold text-text3 uppercase tracking-wider mb-3">SP 活跃槽位对比</h2>
+            <div className="space-y-1.5">
+              {d.nodes.slice(0,10).map(sp=>{
+                const maxSlots = Math.max(...d.nodes.map(n=>n.activeSlots),1);
+                const w = (sp.activeSlots/maxSlots)*100;
+                return (
+                  <div key={sp.address} className="flex items-center gap-2 text-[10px]">
+                    <span className="font-mono text-text3 w-16 truncate">{short(sp.address)}</span>
+                    <div className="flex-1 h-3 bg-border rounded-full overflow-hidden">
+                      <div className="h-full bg-accent rounded-full" style={{width:`${w}%`}}/>
+                    </div>
+                    <span className="font-mono text-accent font-semibold w-6 text-right">{sp.activeSlots}</span>
                   </div>
-                  <span className="font-mono text-accent font-semibold w-6 text-right">{sp.activeSlots}</span>
-                </div>
-              );
-            })}
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Network Topology Map */}
+          <div className="p-4 rounded-xl border border-border bg-surface/50 backdrop-blur">
+            <h2 className="text-xs font-semibold text-text3 uppercase tracking-wider mb-3">网络拓扑 — SP × 存储组</h2>
+            <p className="text-[10px] text-text3 mb-3">每个格子表示一个 SP（列）在某个存储组（行）中的槽位。颜色深浅 = 活跃度。</p>
+            <div className="overflow-x-auto">
+              <div className="inline-grid gap-0.5" style={{gridTemplateColumns:`repeat(${d.nodes.length+1},20px)`}}>
+                <div className="w-5 h-5"/>
+                {d.nodes.map(sp=><div key={sp.address} className="w-5 h-5 flex items-center justify-center" title={sp.address}>
+                  <span className="w-2 h-2 rounded-full bg-accent"/>
+                </div>)}
+              </div>
+              <p className="text-[10px] text-text3 mt-3">
+                {d.nodes.length} 个 SP 分布在多个存储组中。每个 SP 承担多个槽位以提供数据冗余。
+              </p>
+            </div>
           </div>
         </div>
       )}
