@@ -31,18 +31,13 @@ export default async function SPExplorerPage({ searchParams }: { searchParams: P
 
   return (
     <div className="max-w-[1100px] mx-auto px-4 sm:px-5 py-8 sm:py-12">
-      <AutoRefresh interval={30} />
-
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
         <div>
           <div className="font-mono text-[10px] sm:text-[11px] font-medium text-text3 uppercase tracking-wider mb-1">/ ShelbyNet 浏览器</div>
           <h1 className="text-[28px] sm:text-[36px] font-extrabold tracking-tight">网络概览</h1>
         </div>
-        <div className="flex items-center gap-2 text-text3">
-          <span className="w-2 h-2 rounded-full bg-green-400 shadow-[0_0_6px_rgba(34,197,94,.5)] animate-pulse"/>
-          <span className="font-mono text-[10px]">实时 · 30s</span>
-        </div>
+        <AutoRefresh interval={30} />
       </div>
 
       {/* AI Insight */}
