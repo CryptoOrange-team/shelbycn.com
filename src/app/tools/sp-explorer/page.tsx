@@ -55,9 +55,11 @@ export default async function SPExplorerPage() {
         <div>
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-extrabold">存储提供商</h2>
-            <div className="flex gap-2">
+            <div className="flex gap-2 items-center">
               <a href="?sort=active" className="font-mono text-[10px] px-2 py-1 rounded border border-border text-text3 hover:text-text transition-colors">活跃↓</a>
               <a href="?sort=total" className="font-mono text-[10px] px-2 py-1 rounded border border-border text-text3 hover:text-text transition-colors">总槽位↓</a>
+              <span className="text-text3 mx-1">|</span>
+              <a href="/api/export-sp" className="font-mono text-[10px] px-2 py-1 rounded border border-accent/30 text-accent hover:bg-accent/10 transition-colors">CSV ↓</a>
             </div>
           </div>
           <div className="border border-border rounded-lg overflow-x-auto">
@@ -93,7 +95,32 @@ export default async function SPExplorerPage() {
           </div>
         </div>
 
-        {/* Right: Activity + Top Blobs */}
+        {/* Price Comparison */}
+      <div className="mb-8 p-5 rounded-lg border border-border bg-surface">
+        <h2 className="text-sm font-extrabold mb-3">Shelby vs AWS S3 成本对比</h2>
+        <div className="grid grid-cols-3 gap-3 text-center text-[11px]">
+          <div>
+            <div className="text-text3 mb-1">AWS S3</div>
+            <div className="font-mono text-red-400 font-bold">$0.023/GB</div>
+            <div className="text-text3 text-[10px]">存储 + $0.05/GB 出口</div>
+          </div>
+          <div>
+            <div className="text-text3 mb-1">Shelby</div>
+            <div className="font-mono text-green-400 font-bold">$0.01/GB</div>
+            <div className="text-text3 text-[10px]">写 + $0.014/GB 读</div>
+          </div>
+          <div>
+            <div className="text-text3 mb-1">节省</div>
+            <div className="font-mono text-accent font-bold">~70%</div>
+            <div className="text-text3 text-[10px]">vs AWS 总成本</div>
+          </div>
+        </div>
+        <div className="mt-3 text-center">
+          <a href="/tools/sp-calculator" className="font-mono text-[10px] text-accent hover:underline">详细计算器 →</a>
+        </div>
+      </div>
+
+      {/* Right: Activity + Top Blobs */}
         <div className="space-y-6">
           {/* Activity Feed */}
           <div>
