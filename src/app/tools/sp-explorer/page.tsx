@@ -31,11 +31,10 @@ export default async function SPExplorerPage({ searchParams }: { searchParams: P
           <div className="font-mono text-[11px] font-medium text-text3 uppercase tracking-wider mb-1">/ ShelbyNet</div>
           <h1 className="text-[36px] font-extrabold tracking-tight">浏览器</h1>
         </div>
-        <meta httpEquiv="refresh" content="120" />
         <div className="text-right">
           <div className="flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-green-400 shadow-[0_0_6px_rgba(34,197,94,.5)]"/>
-            <span className="font-mono text-[10px] text-text3">实时 · 2分钟刷新</span>
+            <span className="font-mono text-[10px] text-text3">实时 · 手动刷新</span>
           </div>
         </div>
       </div>
