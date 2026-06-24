@@ -75,7 +75,7 @@ export default async function OwnerPage({ params }: { params: Promise<{ address:
               <th className="py-2.5 pr-4 pl-2 text-right">分片</th>
             </tr></thead>
             <tbody>
-              {data.blobs.map((b,i)=>(
+              {data.blobs.map((b: {name:string;size:number;created:string;chunksets:number;expires?:string;deleted?:boolean}, i: number)=>(
                 <tr key={i} className="border-b border-border last:border-0 hover:bg-surface/50 transition-colors">
                   <td className="py-2 pl-4 pr-2 font-mono text-text3">{i+1}</td>
                   <td className="py-2 px-2 text-text2 truncate max-w-[300px]" title={b.name}>{shortName(b.name)}</td>
