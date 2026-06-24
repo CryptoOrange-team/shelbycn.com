@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { getShelbyData } from "@/lib/shelby-data";
+import { AutoRefresh } from "@/components/AutoRefresh";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = { title: "ShelbyNet 浏览器", description: "SP节点、Blob排行榜、实时事件、成本对比。" };
@@ -34,6 +35,7 @@ export default async function SPExplorerPage({ searchParams }: { searchParams: P
 
   return (
     <div className="max-w-[1100px] mx-auto px-4 sm:px-5 py-8 sm:py-12">
+      <AutoRefresh interval={30} />
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
         <div>
