@@ -85,7 +85,7 @@ export default async function SPExplorerPage({ searchParams }: { searchParams: P
 
       {/* Tab Content */}
       {tab === "sp" && <SPTable nodes={d.nodes} search={search} />}
-      {tab === "blobs" && <BlobTable blobs={d.topBlobs} />}
+      {tab === "blobs" && <><BlobTable blobs={d.topBlobs} /><FileTypeStats blobs={d.topBlobs} /></>}
       {tab === "events" && <EventsTable events={d.events} />}
       {tab === "price" && <PriceComparison activeSlots={d.activeSlots} totalSize={d.totalSize} />}
 
@@ -166,26 +166,69 @@ function BlobTable({ blobs }: { blobs: { name: string; size: number; owner: stri
 function EventsTable({ events }: { events: { name: string; owner: string; type: string; time: string; hash?: string }[] }) {
   return (
     <div>
-      <p className="text-xs text-text2 mb-3">最近 blob 注册/写入/删除事件。点击交易哈希跳转到 Aptos Explorer 查看详情。</p>
+      <p className="text-xs text-text2 mb-3">最近 blob 事件。点击 TX 链接跳转到 Aptos Explorer 查看链上详情。</p>
       <div className="border border-border rounded-lg overflow-x-auto">
         <table className="w-full text-xs">
           <thead><tr className="border-b border-border bg-surface text-left font-mono text-[10px] text-text3 uppercase tracking-wider">
             <th className="py-2.5 pl-3 pr-2 font-medium">类型</th>
             <th className="py-2.5 px-2 font-medium">Blob</th>
             <th className="py-2.5 px-2 font-medium">所有者</th>
+            <th className="py-2.5 px-2 font-medium">TX</th>
             <th className="py-2.5 pr-3 pl-2 font-medium text-right">时间</th>
           </tr></thead>
           <tbody>
             {events.map((e,i) => (
               <tr key={i} className="border-b border-border last:border-0 hover:bg-surface transition-colors">
-                <td className="py-2 pl-3 pr-2"><span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-sm bg-green-500/10 text-green-400 border border-green-500/30">{e.type||"事件"}</span></td>
-                <td className="py-2 px-2 text-text2 truncate max-w-[300px]" title={e.name}>{shortName(e.name)}</td>
+                <td className="py-2 pl-3 pr-2"><span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-sm border ${
+                  e.type?.includes("Registered") ? "bg-green-500/10 text-green-400 border-green-500/30" :
+                  e.type?.includes("Written") ? "bg-blue-500/10 text-blue-400 border-blue-500/30" :
+                  e.type?.includes("Deleted") ? "bg-red-500/10 text-red-400 border-red-500/30" :
+                  "bg-surface2 text-text3 border-border"
+                }`}>{e.type||"事件"}</span></td>
+                <td className="py-2 px-2 text-text2 truncate max-w-[250px]" title={e.name}>{shortName(e.name)}</td>
                 <td className="py-2 px-2 font-mono text-text3 text-[10px]">{short(e.owner)}</td>
+                <td className="py-2 px-2">
+                  {e.hash ? (
+                    <a href={`https://explorer.aptoslabs.com/txn/${e.hash}?network=shelbynet`} target="_blank" rel="noopener noreferrer"
+                      className="font-mono text-[10px] text-accent hover:underline">{short(e.hash)}</a>
+                  ) : "—"}
+                </td>
                 <td className="py-2 pr-3 pl-2 font-mono text-text3 text-right text-[10px]">{new Date(e.time).toLocaleString("zh-CN")}</td>
               </tr>
             ))}
           </tbody>
         </table>
+      </div>
+    </div>
+  );
+}
+
+function FileTypeStats({ blobs }: { blobs: { name: string; size: number }[] }) {
+  const types: Record<string, { count: number; size: number }> = {};
+  for (const b of blobs) {
+    const ext = b.name.split(".").pop()?.toLowerCase() || "other";
+    const cat = /^(mp4|mkv|avi|mov|webm)$/.test(ext) ? "视频" :
+      /^(jpg|jpeg|png|gif|webp|svg)$/.test(ext) ? "图片" :
+      /^(pdf|doc|docx|txt|md|csv|json|xml)$/.test(ext) ? "文档" :
+      /^(rar|zip|gz|tar|7z)$/.test(ext) ? "压缩包" :
+      /^(bin|dat|raw)$/.test(ext) ? "二进制" : "其他";
+    if (!types[cat]) types[cat] = { count: 0, size: 0 };
+    types[cat].count += 1;
+    types[cat].size += b.size;
+  }
+  const sorted = Object.entries(types).sort((a,b) => b[1].size - a[1].size);
+
+  return (
+    <div className="mt-6">
+      <h2 className="text-sm font-extrabold mb-3">文件类型分布（Top 50）</h2>
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+        {sorted.map(([cat,stats]) => (
+          <div key={cat} className="p-3 rounded-lg border border-border bg-surface text-center">
+            <div className="font-bold text-sm mb-0.5">{cat}</div>
+            <div className="font-mono text-xs text-accent">{fmtB(stats.size)}</div>
+            <div className="text-[10px] text-text3">{stats.count} 个文件</div>
+          </div>
+        ))}
       </div>
     </div>
   );
