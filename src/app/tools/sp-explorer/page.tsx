@@ -85,7 +85,11 @@ export default async function SPExplorerPage({ searchParams }: { searchParams: P
       {/* Tab Content */}
       {tab === "sp" && <SPTable nodes={d.nodes} search={search} />}
       {tab === "blobs" && <BlobTab topBlobs={d.topBlobs} recentBlobs={d.recentBlobs} />}
-      {tab === "events" && <EventsTable events={d.events} />}
+      {tab === "events" && (
+        d.error
+          ? <div className="p-6 border border-red-500/30 bg-red-500/5 rounded-lg text-sm text-red-400">错误：{d.error}</div>
+          : <EventsTable events={d.events} />
+      )}
       {tab === "price" && <PriceComparison activeSlots={d.activeSlots} totalSize={d.totalSize} />}
 
       {search && d.nodes.length === 0 && tab === "sp" && (
