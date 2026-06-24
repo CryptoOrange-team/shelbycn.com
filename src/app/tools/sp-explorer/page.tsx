@@ -180,20 +180,43 @@ export default async function SPExplorerPage({ searchParams }: { searchParams: P
             </div>
           </div>
 
-          {/* Network Topology Map */}
+          {/* Network Ring Topology */}
           <div className="p-4 rounded-xl border border-border bg-surface/50 backdrop-blur">
-            <h2 className="text-xs font-semibold text-text3 uppercase tracking-wider mb-3">网络拓扑 — SP × 存储组</h2>
-            <p className="text-[10px] text-text3 mb-3">每个格子表示一个 SP（列）在某个存储组（行）中的槽位。颜色深浅 = 活跃度。</p>
-            <div className="overflow-x-auto">
-              <div className="inline-grid gap-0.5" style={{gridTemplateColumns:`repeat(${d.nodes.length+1},20px)`}}>
-                <div className="w-5 h-5"/>
-                {d.nodes.map(sp=><div key={sp.address} className="w-5 h-5 flex items-center justify-center" title={sp.address}>
-                  <span className="w-2 h-2 rounded-full bg-accent"/>
-                </div>)}
+            <h2 className="text-xs font-semibold text-text3 uppercase tracking-wider mb-3">网络拓扑</h2>
+            <div className="relative mx-auto" style={{width:280,height:280}}>
+              {/* Outer ring */}
+              <div className="absolute inset-4 rounded-full border-2 border-border/40"/>
+              <div className="absolute inset-12 rounded-full border border-dashed border-border/30"/>
+              <div className="absolute inset-20 rounded-full border border-border/20"/>
+              {/* SP nodes positioned around the ring */}
+              {d.nodes.slice(0,8).map((sp,i)=>{
+                const angle = (i/d.nodes.slice(0,8).length)*Math.PI*2 - Math.PI/2;
+                const r = 100;
+                const x = 140 + Math.cos(angle)*r;
+                const y = 140 + Math.sin(angle)*r;
+                const size = Math.max(24, Math.min(48, 20 + sp.activeSlots * 4));
+                const hue = 25; // orange
+                const sat = 80 + (sp.activeSlots/Math.max(...d.nodes.map(n=>n.activeSlots),1))*20;
+                const light = 50 + (1 - sp.activeSlots/Math.max(...d.nodes.map(n=>n.activeSlots),1))*15;
+                return (
+                  <div key={sp.address} className="absolute flex flex-col items-center justify-center rounded-full border-2 border-accent/40 bg-accent/10 transition-all hover:scale-110 cursor-help"
+                    style={{left:x-size/2,top:y-size/2,width:size,height:size}}
+                    title={`${sp.address}\n活跃: ${sp.activeSlots}/${sp.totalSlots} 槽位\n健康分: ${Math.round((sp.totalSlots>0?(sp.activeSlots/sp.totalSlots)*60:0)+(sp.lastSeen?Math.max(0,100-((Date.now()-sp.lastSeen/1000)/3600000)*10):0))}`}>
+                    <span className="font-mono text-[8px] font-bold text-accent">{short(sp.address).slice(0,4)}</span>
+                    <span className="font-mono text-[7px] text-text3">{sp.activeSlots}</span>
+                  </div>
+                );
+              })}
+              {/* Center label */}
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-center pointer-events-none">
+                <div className="font-mono text-[10px] font-bold text-accent">ShelbyNet</div>
+                <div className="font-mono text-[8px] text-text3">{d.activeSPs} SPs</div>
               </div>
-              <p className="text-[10px] text-text3 mt-3">
-                {d.nodes.length} 个 SP 分布在多个存储组中。每个 SP 承担多个槽位以提供数据冗余。
-              </p>
+            </div>
+            <div className="flex justify-center gap-4 mt-3 text-[10px] text-text3">
+              <span>● 大小 = 活跃槽位</span>
+              <span>共 {d.nodes.length} 个节点</span>
+              {d.nodes.length > 8 && <span>显示前 8 个</span>}
             </div>
           </div>
         </div>
