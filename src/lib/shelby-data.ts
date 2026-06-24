@@ -74,7 +74,7 @@ export async function getShelbyData(): Promise<ShelbyNetworkData> {
       method: "POST",
       headers: headers(),
       body: JSON.stringify({ query }),
-      next: { revalidate: 300 },
+      next: { revalidate: 60 },
     });
 
     if (!res.ok) {
