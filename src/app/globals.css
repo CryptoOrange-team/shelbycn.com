@@ -3,7 +3,7 @@
 @theme inline {
   --color-background: #141415;
   --color-foreground: #e8e8ec;
-  --font-sans: "Geist", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Atkinson Hyperlegible Next", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, monospace;
 }
 
@@ -19,11 +19,19 @@
   --c-accent: #f97316;
   --c-accent-text: #fb923c;
   --c-green: #22c55e;
-  --c-green-bg: rgba(34,197,94,.12);
   --c-yellow: #eab308;
-  --c-yellow-bg: rgba(234,179,8,.12);
   --c-red: #ef4444;
-  --c-red-bg: rgba(239,68,68,.12);
+}
+
+.light {
+  --c-bg: #fafaf9;
+  --c-surface: #f5f5f4;
+  --c-surface2: #eeeeec;
+  --c-border: #dddde0;
+  --c-border-hover: #c4c4ca;
+  --c-text: #1a1a1c;
+  --c-text2: #6b6b74;
+  --c-text3: #94949c;
 }
 
 body {
@@ -36,3 +44,8 @@ body {
 }
 
 ::selection { background: var(--c-accent); color: #fff; }
+
+/* Toggle */
+#theme-toggle { display: none; }
+.light #theme-light { display: none; }
+:not(.light) #theme-dark { display: none; }
