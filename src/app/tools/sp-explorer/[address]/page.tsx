@@ -9,18 +9,16 @@ export async function generateMetadata({ params }: { params: Promise<{ address: 
   return { title: `SP ${address.slice(0, 10)}...` };
 }
 
+function fmtB(b: number): string {
+  if (!b) return "0 B";
+  const u = ["B", "KB", "MB", "GB", "TB", "PB"];
+  let i = 0; let v = b;
+  while (v >= 1024 && i < u.length - 1) { v /= 1024; i++; }
+  return `${v.toFixed(i > 0 ? 1 : 0)} ${u[i]}`;
+}
 function shorten(a: string): string { return `${a.slice(0, 8)}...${a.slice(-6)}`; }
-function timeAgo(us: number): string {
-  if (!us) return "—";
-  const s = Math.floor((Date.now() - us / 1000) / 1000);
-  if (s < 60) return `${s}s`;
-  if (s < 3600) return `${Math.floor(s / 60)}m`;
-  if (s < 86400) return `${Math.floor(s / 3600)}h`;
-  return `${Math.floor(s / 86400)}d`;
-}
-function fmtTime(us: number): string {
-  return us ? new Date(us / 1000).toLocaleString("zh-CN") : "—";
-}
+function fmtTime(us: number): string { return us ? new Date(us / 1000).toLocaleString("zh-CN") : "—"; }
+function shortName(n: string): string { const p = n.split("/"); return p[p.length - 1] || n.slice(0, 30); }
 
 const STATUS_LABELS: Record<string, string> = { active: "活跃", joining: "接入中", vacated: "已退出" };
 
@@ -95,15 +93,15 @@ export default async function SPDetailPage({ params }: { params: Promise<{ addre
         </div>
 
         <div>
-          <h2 className="text-lg font-extrabold mb-3">最近 Blobs</h2>
+          <h2 className="text-lg font-extrabold mb-3">Blobs ({sp.blobs.length})</h2>
           <div className="border border-border rounded-lg overflow-hidden">
-            {sp.recentBlobs.length === 0 && <div className="p-4 text-xs text-text3 text-center">暂无</div>}
-            {sp.recentBlobs.map((b, i) => (
+            {sp.blobs.length === 0 && <div className="p-4 text-xs text-text3 text-center">暂无</div>}
+            {sp.blobs.map((b, i) => (
               <div key={i} className="flex items-center gap-2 px-3 py-2 border-b border-border last:border-0 text-[11px]">
-                <span className="w-1.5 h-1.5 rounded-full bg-blue-400 shrink-0" />
-                <span className="font-mono text-text3 flex-1 truncate" title={b.blob_name}>{shorten(b.blob_name)}</span>
-                <span className="font-mono text-accent shrink-0">{b.size ? `${(parseInt(b.size, 10) / 1024).toFixed(0)}KB` : ""}</span>
-                <span className="font-mono text-text3 shrink-0">{b.created_at ? new Date(b.created_at).toLocaleDateString("zh-CN") : ""}</span>
+                <span className="font-mono text-text3 w-4 text-right shrink-0">{i + 1}</span>
+                <span className="flex-1 min-w-0 truncate text-text2" title={b.name}>{shortName(b.name)}</span>
+                <span className="font-mono text-accent font-semibold shrink-0">{fmtB(b.size)}</span>
+                <span className="font-mono text-text3 shrink-0 text-[10px]">{b.created ? new Date(parseInt(b.created, 10) / 1000).toLocaleDateString("zh-CN") : ""}</span>
               </div>
             ))}
           </div>
