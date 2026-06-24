@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { getShelbySPData } from "@/lib/shelby-data";
+import { getShelbyData } from "@/lib/shelby-data";
 
 export async function generateMetadata({ params }: { params: Promise<{ address: string }> }): Promise<Metadata> {
   const { address } = await params;
@@ -17,7 +17,7 @@ function formatBytes(bytes: number): string {
 
 export default async function SPDetailPage({ params }: { params: Promise<{ address: string }> }) {
   const { address } = await params;
-  const data = await getShelbySPData();
+  const data = await getShelbyData();
   const sp = data.nodes.find(n => n.address.toLowerCase() === address.toLowerCase());
 
   if (!sp && !data.error) {
@@ -26,7 +26,7 @@ export default async function SPDetailPage({ params }: { params: Promise<{ addre
         <Link href="/tools/sp-explorer" className="font-mono text-xs text-text3 hover:text-text transition-colors">← SP 节点浏览器</Link>
         <div className="mt-16 text-center py-20">
           <h1 className="text-2xl font-extrabold mb-4">SP 未找到</h1>
-          <p className="text-text2 text-sm">链上数据中未找到该地址对应的存储提供商。</p>
+          <p className="text-text2 text-sm">网络中未找到该地址。</p>
           <Link href="/tools/sp-explorer" className="text-accent text-sm mt-4 inline-block">返回列表 →</Link>
         </div>
       </div>
@@ -55,34 +55,26 @@ export default async function SPDetailPage({ params }: { params: Promise<{ addre
           / 存储提供商详情
         </div>
         <h1 className="text-xl font-extrabold tracking-tight mb-2 break-all">{sp!.address}</h1>
-        <div className="flex gap-3 flex-wrap mt-3">
-          <a href={`https://explorer.shelby.xyz/shelbynet/account/${sp!.address}`}
-            target="_blank" rel="noopener noreferrer"
-            className="font-mono text-xs text-accent hover:underline">
-            Shelby Explorer ↗
-          </a>
-        </div>
+        <a href={`https://explorer.shelby.xyz/shelbynet/account/${sp!.address}`}
+          target="_blank" rel="noopener noreferrer"
+          className="font-mono text-xs text-accent hover:underline mt-2 inline-block">
+          Shelby Explorer ↗
+        </a>
       </div>
 
-      {/* Details Grid */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-px bg-border rounded-lg overflow-hidden mb-10">
-        <DetailBox label="状态">
-          <StatusBadge status={sp!.status} />
-        </DetailBox>
-        <DetailBox label="区域" value={sp!.availabilityZone} />
-        <DetailBox label="IP 地址" value={sp!.ipAddress} mono />
-        <DetailBox label="配额" value={formatBytes(sp!.quotaBytes)} accent />
-        <DetailBox label="故障标记" value={sp!.faulty ? "是" : "否"} color={sp!.faulty ? "text-red-400" : "text-green-400"} />
-        <DetailBox label="退出中" value={sp!.leaving ? "是" : "否"} color={sp!.leaving ? "text-yellow-400" : "text-green-400"} />
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-px bg-border rounded-lg overflow-hidden mb-10">
+        <DetailBox label="总槽位" value={sp!.totalSlots.toString()} />
+        <DetailBox label="活跃槽位" value={sp!.activeSlots.toString()} color="text-green-400" />
+        <DetailBox label="接入中" value={sp!.joiningSlots.toString() || "—"} color="text-yellow-400" />
+        <DetailBox label="已退出" value={sp!.vacatedSlots.toString() || "—"} color="text-red-400" />
       </div>
 
-      {/* What this means */}
       <div className="p-8 rounded-lg border border-border bg-surface">
-        <h2 className="text-lg font-extrabold mb-3">什么是存储提供商？</h2>
+        <h2 className="text-lg font-extrabold mb-3">关于存储提供商</h2>
         <div className="text-sm text-text2 space-y-2">
           <p>存储提供商(SP)运行物理服务器，为 Shelby 网络贡献硬盘空间和带宽。</p>
+          <p>每个<b className="text-text">槽位(Slot)</b>代表该 SP 在一个存储组(Placement Group)中的位置。</p>
           <p>SP 通过<b className="text-text">写费用</b>（存储数据）和<b className="text-text">读费用</b>（提供数据）获得收入。</p>
-          <p className="text-text3">配额(Quota)是该 SP 在网络中可存储的最大数据量。</p>
         </div>
       </div>
     </div>

@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { getShelbySPData } from "@/lib/shelby-data";
+import { getShelbyData } from "@/lib/shelby-data";
 
 export const metadata: Metadata = {
   title: "Shelby SP 节点浏览器 — 实时存储提供商目录",
-  description: "浏览 ShelbyNet 所有存储提供商(SP)。实时链上数据——配额、状态、位置。",
+  description: "浏览 ShelbyNet 所有存储提供商。实时数据——3218万 blobs、8363万次活动。",
 };
 
 function formatBytes(bytes: number): string {
@@ -20,8 +20,18 @@ function shortenAddr(addr: string): string {
   return `${addr.slice(0, 6)}...${addr.slice(-4)}`;
 }
 
+function timeAgo(us: number): string {
+  if (!us) return "—";
+  const ms = us / 1000;
+  const seconds = Math.floor((Date.now() - ms) / 1000);
+  if (seconds < 60) return `${seconds}s`;
+  if (seconds < 3600) return `${Math.floor(seconds / 60)}m`;
+  if (seconds < 86400) return `${Math.floor(seconds / 3600)}h`;
+  return `${Math.floor(seconds / 86400)}d`;
+}
+
 export default async function SPExplorerPage() {
-  const data = await getShelbySPData();
+  const data = await getShelbyData();
 
   return (
     <div className="max-w-[960px] mx-auto px-5 py-12">
@@ -30,7 +40,7 @@ export default async function SPExplorerPage() {
       </div>
       <h1 className="text-[36px] font-extrabold tracking-tight mb-2">SP 节点浏览器</h1>
       <p className="text-sm text-text2 mb-10">
-        存储提供商(SP)实时目录。数据直接从 Aptos 链上 view function 读取。
+        存储提供商实时目录。数据每 5 分钟刷新。
       </p>
 
       {data.error && (
@@ -41,33 +51,30 @@ export default async function SPExplorerPage() {
 
       {/* Network Overview */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-px bg-border rounded-lg overflow-hidden mb-10">
-        <StatBox value={data.stats.totalSPs.toString()} label="SP 总数" />
-        <StatBox value={data.stats.activeSPs.toString()} label="活跃" color="green" />
-        <StatBox value={data.stats.waitlistedSPs.toString()} label="等待中" color="yellow" />
-        <StatBox value={formatBytes(data.stats.totalQuotaBytes)} label="总配额" />
+        <StatBox value={data.blobCount.toLocaleString()} label="总 Blobs" />
+        <StatBox value={formatBytes(data.totalSize)} label="总存储量" />
+        <StatBox value={data.activityCount.toLocaleString()} label="总活动" />
+        <StatBox value={`${data.activeSPs}/${data.totalSPs}`} label="活跃/总 SP" color="green" />
       </div>
 
       {/* SP List */}
-      <h2 className="text-xl font-extrabold mb-4">存储提供商列表</h2>
+      <h2 className="text-xl font-extrabold mb-4">存储提供商（{data.totalSPs} 个节点，{data.totalSlots} 个槽位）</h2>
       <div className="border border-border rounded-lg overflow-x-auto">
         <table className="w-full text-xs">
           <thead>
             <tr className="border-b border-border bg-surface text-left font-mono text-[10px] text-text3 uppercase tracking-wider">
               <th className="py-3 pl-4 pr-4 font-medium">#</th>
               <th className="py-3 pr-4 font-medium">SP 地址</th>
-              <th className="py-3 pr-4 font-medium">区域</th>
-              <th className="py-3 pr-4 font-medium text-right">配额</th>
+              <th className="py-3 pr-4 font-medium text-right">活跃槽位</th>
+              <th className="py-3 pr-4 font-medium text-right">接入中</th>
+              <th className="py-3 pr-4 font-medium text-right">已退出</th>
               <th className="py-3 pr-4 font-medium">状态</th>
-              <th className="py-3 pr-4 font-medium">标记</th>
+              <th className="py-3 pr-4 font-medium text-right">最后活跃</th>
             </tr>
           </thead>
           <tbody>
             {data.nodes.length === 0 && !data.error && (
-              <tr>
-                <td colSpan={6} className="py-12 text-center text-text3">
-                  暂无 SP 节点。测试网可能还没有活跃的存储提供商。
-                </td>
-              </tr>
+              <tr><td colSpan={7} className="py-12 text-center text-text3">暂无数据。</td></tr>
             )}
             {data.nodes.map((sp, i) => (
               <tr key={sp.address} className="border-b border-border last:border-0 hover:bg-surface transition-colors">
@@ -78,19 +85,13 @@ export default async function SPExplorerPage() {
                     {shortenAddr(sp.address)}
                   </Link>
                 </td>
-                <td className="py-2.5 pr-4 font-mono text-text2 text-[11px]">{sp.availabilityZone}</td>
-                <td className="py-2.5 pr-4 font-mono text-accent font-semibold text-right">
-                  {formatBytes(sp.quotaBytes)}
-                </td>
+                <td className="py-2.5 pr-4 font-mono text-green-400 font-semibold text-right">{sp.activeSlots}</td>
+                <td className="py-2.5 pr-4 font-mono text-yellow-400 text-right">{sp.joiningSlots || "—"}</td>
+                <td className="py-2.5 pr-4 font-mono text-red-400 text-right">{sp.vacatedSlots || "—"}</td>
                 <td className="py-2.5 pr-4">
-                  <StatusBadge status={sp.status} />
+                  {sp.activeSlots > 0 ? <StatusBadge status="active" /> : <StatusBadge status="inactive" />}
                 </td>
-                <td className="py-2.5 pr-4">
-                  <div className="flex gap-1">
-                    {sp.faulty && <span className="text-[9px] px-1 py-0.5 bg-red-500/10 text-red-400 border border-red-500/30 rounded-sm font-semibold">异常</span>}
-                    {sp.leaving && <span className="text-[9px] px-1 py-0.5 bg-yellow-500/10 text-yellow-400 border border-yellow-500/30 rounded-sm font-semibold">退出中</span>}
-                  </div>
-                </td>
+                <td className="py-2.5 pr-4 font-mono text-text3 text-right">{timeAgo(sp.lastSeen)}</td>
               </tr>
             ))}
           </tbody>
@@ -98,9 +99,9 @@ export default async function SPExplorerPage() {
       </div>
 
       <div className="flex items-center gap-2 mt-4">
-        <span className={`w-2 h-2 rounded-full ${data.nodes.length > 0 ? "bg-green-400 shadow-[0_0_6px_rgba(34,197,94,.5)]" : "bg-yellow-400"}`} />
+        <span className="w-2 h-2 rounded-full bg-green-400 shadow-[0_0_6px_rgba(34,197,94,.5)]" />
         <span className="font-mono text-[10px] text-text3">
-          {data.nodes.length > 0 ? "数据来源：ShelbyNet 链上 view function" : "等待 SP 节点上线"}
+          数据来源：ShelbyNet GraphQL 索引器 · 每 5 分钟刷新
         </span>
       </div>
     </div>

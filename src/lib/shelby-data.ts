@@ -1,102 +1,142 @@
 "use server";
 
-import { Aptos, AptosConfig, Network } from "@aptos-labs/ts-sdk";
+const ENDPOINT = "https://api.shelbynet.aptoslabs.com/nocode/v1/public/alias/shelby/shelbynet/v1/graphql";
 
-const SHELBY_DEPLOYER = "0x85fdb9a176ab8ef1d9d9c1b60d60b3924f0800ac1de1cc2085fb0b8bb4988e6a";
+function getApiKey(): string {
+  if (process.env.SHELBY_API_KEY) return process.env.SHELBY_API_KEY;
+  if (process.env.NEXT_PUBLIC_SHELBY_API_KEY) return process.env.NEXT_PUBLIC_SHELBY_API_KEY;
+  return "";
+}
 
-interface SPInfo {
-  address: string;
-  ipAddress: string;
-  port: string;
-  availabilityZone: string;
-  state: {
-    variant: string;
-    quota?: string;
-    faulty?: boolean;
-    leaving?: boolean;
-    frozenReason?: string;
-    frozenFrom?: string;
-    frozenTill?: string;
+function headers(): Record<string, string> {
+  const key = getApiKey();
+  if (!key) return { "Content-Type": "application/json" };
+  return {
+    "Content-Type": "application/json",
+    "Authorization": `Bearer ${key}`,
   };
+}
+
+interface SlotRow {
+  storage_provider: string;
+  status: "active" | "joining" | "vacated";
+  slot_index: number;
+  placement_group: string;
+  updated_at: number;
+}
+
+interface AggregateResult {
+  aggregate: { count: number; sum?: { size?: string } };
 }
 
 export interface SPNode {
   address: string;
-  ipAddress: string;
-  availabilityZone: string;
-  status: string;
-  quota: string;
-  quotaBytes: number;
-  faulty: boolean;
-  leaving: boolean;
+  activeSlots: number;
+  totalSlots: number;
+  joiningSlots: number;
+  vacatedSlots: number;
+  lastSeen: number;
 }
 
-interface NetworkStats {
+export interface ShelbyNetworkData {
+  nodes: SPNode[];
   totalSPs: number;
   activeSPs: number;
-  waitlistedSPs: number;
-  frozenSPs: number;
-  totalQuotaBytes: number;
-}
-
-interface ShelbyDataResult {
-  nodes: SPNode[];
-  stats: NetworkStats;
+  totalSlots: number;
+  activeSlots: number;
+  blobCount: number;
+  totalSize: number;
+  activityCount: number;
   error: string | null;
 }
 
-export async function getShelbySPData(): Promise<ShelbyDataResult> {
-  try {
-    const config = new AptosConfig({ network: Network.SHELBYNET });
-    const aptos = new Aptos(config);
+export async function getShelbyData(): Promise<ShelbyNetworkData> {
+  const query = `
+    query NetworkOverview {
+      placement_group_slots(order_by: { updated_at: desc }, limit: 2000) {
+        storage_provider
+        status
+        slot_index
+        placement_group
+        updated_at
+      }
+      blobs_aggregate {
+        aggregate { count sum { size } }
+      }
+      blob_activities_aggregate {
+        aggregate { count }
+      }
+    }
+  `;
 
-    const raw = await aptos.view<[SPInfo[]]>({
-      payload: {
-        function: `${SHELBY_DEPLOYER}::storage_provider_registry::get_all_storage_providers`,
-      },
+  try {
+    const res = await fetch(ENDPOINT, {
+      method: "POST",
+      headers: headers(),
+      body: JSON.stringify({ query }),
+      next: { revalidate: 300 },
     });
 
-    const spList = Array.isArray(raw) ? (raw[0] as unknown as SPInfo[]) : [];
-    if (!Array.isArray(spList)) {
-      return { nodes: [], stats: emptyStats(), error: null };
+    if (!res.ok) {
+      const text = await res.text();
+      return emptyResult(`GraphQL 返回错误 (${res.status}): ${text.slice(0, 200)}`);
     }
 
-    const nodes: SPNode[] = spList.map((sp) => {
-      let quotaStr = "0";
-      if (sp.state.variant === "Active" && sp.state.quota) {
-        quotaStr = sp.state.quota;
+    const json = await res.json();
+
+    if (json.errors) {
+      return emptyResult(`GraphQL 错误: ${json.errors[0]?.message ?? "未知错误"}`);
+    }
+
+    const slots: SlotRow[] = json?.data?.placement_group_slots ?? [];
+    const blobsAgg: AggregateResult = json?.data?.blobs_aggregate ?? { aggregate: { count: 0 } };
+    const activitiesAgg: AggregateResult = json?.data?.blob_activities_aggregate ?? { aggregate: { count: 0 } };
+
+    // Aggregate by SP
+    const spMap = new Map<string, SPNode>();
+    for (const s of slots) {
+      const existing = spMap.get(s.storage_provider);
+      if (existing) {
+        existing.totalSlots += 1;
+        if (s.status === "active") existing.activeSlots += 1;
+        if (s.status === "joining") existing.joiningSlots += 1;
+        if (s.status === "vacated") existing.vacatedSlots += 1;
+        if (s.updated_at > existing.lastSeen) existing.lastSeen = s.updated_at;
+      } else {
+        spMap.set(s.storage_provider, {
+          address: s.storage_provider,
+          totalSlots: 1,
+          activeSlots: s.status === "active" ? 1 : 0,
+          joiningSlots: s.status === "joining" ? 1 : 0,
+          vacatedSlots: s.status === "vacated" ? 1 : 0,
+          lastSeen: s.updated_at,
+        });
       }
-      const quotaBytes = parseInt(quotaStr, 10) || 0;
+    }
 
-      return {
-        address: sp.address,
-        ipAddress: sp.ipAddress ?? "—",
-        availabilityZone: sp.availabilityZone ?? "—",
-        status: sp.state.variant.toLowerCase(),
-        quota: quotaStr,
-        quotaBytes,
-        faulty: sp.state.faulty ?? false,
-        leaving: sp.state.leaving ?? false,
-      };
-    });
+    const nodes = Array.from(spMap.values()).sort((a, b) => b.activeSlots - a.activeSlots);
+    const activeNodes = nodes.filter(n => n.activeSlots > 0);
 
-    nodes.sort((a, b) => b.quotaBytes - a.quotaBytes);
-
-    const stats: NetworkStats = {
+    return {
+      nodes,
       totalSPs: nodes.length,
-      activeSPs: nodes.filter(n => n.status === "active").length,
-      waitlistedSPs: nodes.filter(n => n.status === "waitlisted").length,
-      frozenSPs: nodes.filter(n => n.status === "frozen").length,
-      totalQuotaBytes: nodes.reduce((sum, n) => sum + n.quotaBytes, 0),
+      activeSPs: activeNodes.length,
+      totalSlots: slots.length,
+      activeSlots: slots.filter(s => s.status === "active").length,
+      blobCount: blobsAgg.aggregate?.count ?? 0,
+      totalSize: parseInt(blobsAgg.aggregate?.sum?.size ?? "0", 10) || 0,
+      activityCount: activitiesAgg.aggregate?.count ?? 0,
+      error: null,
     };
-
-    return { nodes, stats, error: null };
   } catch (e) {
     const msg = e instanceof Error ? e.message : "未知错误";
-    return { nodes: [], stats: emptyStats(), error: `无法查询链上数据: ${msg}` };
+    return emptyResult(`无法连接 ShelbyNet: ${msg}`);
   }
 }
 
-function emptyStats(): NetworkStats {
-  return { totalSPs: 0, activeSPs: 0, waitlistedSPs: 0, frozenSPs: 0, totalQuotaBytes: 0 };
+function emptyResult(error: string): ShelbyNetworkData {
+  return {
+    nodes: [], totalSPs: 0, activeSPs: 0, totalSlots: 0, activeSlots: 0,
+    blobCount: 0, totalSize: 0, activityCount: 0, error,
+  };
 }
