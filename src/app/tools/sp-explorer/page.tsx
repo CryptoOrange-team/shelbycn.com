@@ -82,6 +82,27 @@ export default async function SPExplorerPage({ searchParams }: { searchParams: P
 
       {d.error && <div className="p-4 border border-red-500/30 bg-red-500/5 rounded-lg text-sm text-red-400 mb-6">{d.error}</div>}
 
+      {/* Live Ticker */}
+      {d.events.length > 0 && (
+        <div className="mb-6 p-3 rounded-xl border border-accent/20 bg-accent/5 overflow-hidden">
+          <div className="flex items-center gap-2 text-xs">
+            <span className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse shrink-0"/>
+            <span className="font-mono text-[10px] text-accent font-semibold shrink-0">LIVE</span>
+            <div className="overflow-x-hidden relative flex-1">
+              <div className="flex gap-6 whitespace-nowrap" style={{animation:"scroll-x 30s linear infinite"}}>
+                {d.events.slice(0, 8).map((e,i) => (
+                  <span key={i} className="text-text3 text-[11px]">
+                    {e.type} <span className="text-text2">{shortName(e.name)}</span>
+                    <span className="text-text3 ml-2">{new Date(e.time).toLocaleTimeString("zh-CN",{hour:"2-digit",minute:"2-digit"})}</span>
+                    {i < 7 && <span className="text-border mx-3">|</span>}
+                  </span>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Stats Row */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 sm:gap-3 mb-6">
         <StatBox label="Blobs" value={fmtN(d.blobCount)} />
@@ -157,11 +178,17 @@ function SPTable({nodes,search}:{nodes:{address:string;activeSlots:number;totalS
           <th className="py-3 px-2 font-medium text-right">接入</th>
           <th className="py-3 px-2 font-medium text-right">退出</th>
           <th className="py-3 px-2 font-medium hidden sm:table-cell">活跃率</th>
+          <th className="py-3 px-2 font-medium text-right">健康分</th>
           <th className="py-3 pr-4 pl-2 font-medium text-right">最近</th>
         </tr></thead>
         <tbody>
           {nodes.map(sp=>{
             const pct=sp.totalSlots>0?(sp.activeSlots/sp.totalSlots)*100:0;
+            // Health score: active ratio (60%) + recency (40%)
+            const hoursAgo = sp.lastSeen ? (Date.now() - sp.lastSeen/1000) / 3600000 : 999;
+            const recencyScore = Math.max(0, 100 - hoursAgo * 10); // 0 after 10h
+            const healthScore = Math.round(pct * 0.6 + recencyScore * 0.4);
+            const healthColor = healthScore >= 80 ? "text-green-400" : healthScore >= 50 ? "text-yellow-400" : "text-red-400";
             return (
               <tr key={sp.address} className="border-b border-border last:border-0 hover:bg-surface/50 transition-colors">
                 <td className="py-2.5 pl-4 pr-2">
@@ -176,6 +203,7 @@ function SPTable({nodes,search}:{nodes:{address:string;activeSlots:number;totalS
                     <span className="font-mono text-[10px] text-text3 w-8 text-right">{Math.round(pct)}%</span>
                   </div>
                 </td>
+                <td className="py-2.5 px-2 text-right"><span className={`font-mono text-[10px] font-bold ${healthColor}`}>{healthScore}</span></td>
                 <td className="py-2.5 pr-4 pl-2 font-mono text-text3 text-right text-[10px]">{ago(sp.lastSeen)}</td>
               </tr>
             );
