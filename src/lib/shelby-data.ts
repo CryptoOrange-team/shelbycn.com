@@ -37,6 +37,7 @@ export interface ShelbyNetworkData {
   totalSPs: number; activeSPs: number; totalSlots: number; activeSlots: number;
   blobCount: number; totalSize: number; activityCount: number;
   status: NetStatus | null;
+  growth: { weekBlobs: number; weekSize: number; dayBlobs: number; daySize: number };
   events: { name: string; owner: string; type: string; time: string; hash?: string }[];
   recentBlobs: BlobItem[];
   topBlobs: BlobItem[];
@@ -44,7 +45,7 @@ export interface ShelbyNetworkData {
 }
 
 function emptyData(error: string): ShelbyNetworkData {
-  return { nodes: [], totalSPs: 0, activeSPs: 0, totalSlots: 0, activeSlots: 0, blobCount: 0, totalSize: 0, activityCount: 0, status: null, events: [], recentBlobs: [], topBlobs: [], error };
+  return { nodes: [], totalSPs: 0, activeSPs: 0, totalSlots: 0, activeSlots: 0, blobCount: 0, totalSize: 0, activityCount: 0, status: null, growth: { weekBlobs: 0, weekSize: 0, dayBlobs: 0, daySize: 0 }, events: [], recentBlobs: [], topBlobs: [], error };
 }
 
 // ── Main Query ──
@@ -60,6 +61,8 @@ export async function getShelbyData(sort: string = "active", search: string = ""
       top_blobs: blobs(order_by: { size: desc }, limit: 50) { blob_name size owner created_at num_chunksets expires_at is_deleted is_written }
       recent_blobs: blobs(order_by: { created_at: desc }, limit: 30) { blob_name size owner created_at num_chunksets expires_at is_deleted is_written }
       processor_status(limit: 1, order_by: { last_updated: desc }) { last_success_version last_transaction_timestamp last_updated }
+      week_aggregate: blobs_aggregate(where: {created_at: {_gte: "1781500000000000"}}) { aggregate { count sum { size } } }
+      day_aggregate: blobs_aggregate(where: {created_at: {_gte: "1782000000000000"}}) { aggregate { count sum { size } } }
     }
   `;
 
@@ -89,6 +92,12 @@ export async function getShelbyData(sort: string = "active", search: string = ""
       totalSize: parseInt(data.blobs_aggregate?.aggregate?.sum?.size ?? "0", 10) || 0,
       activityCount: data.blob_activities_aggregate?.aggregate?.count ?? 0,
       status: ps.length > 0 ? { lastVersion: parseInt(ps[0].last_success_version, 10), lastTxnTime: ps[0].last_transaction_timestamp, lastUpdated: ps[0].last_updated } : null,
+      growth: {
+        weekBlobs: data.week_aggregate?.aggregate?.count ?? 0,
+        weekSize: parseInt(data.week_aggregate?.aggregate?.sum?.size ?? "0", 10) || 0,
+        dayBlobs: data.day_aggregate?.aggregate?.count ?? 0,
+        daySize: parseInt(data.day_aggregate?.aggregate?.sum?.size ?? "0", 10) || 0,
+      },
       events: events.map(e => ({ name: e.blob_name, owner: e.owner, type: e.event_type.split("::").pop()?.replace("Event", "") ?? "", time: e.timestamp, hash: e.transaction_hash })),
       recentBlobs: recentBlobsRaw.map(b => ({ name: b.blob_name, size: parseInt(b.size, 10) || 0, owner: b.owner, chunksets: parseInt(b.num_chunksets, 10) || 0, created: b.created_at, expires: b.expires_at, isDeleted: b.is_deleted, isWritten: b.is_written })),
       topBlobs: topBlobs.map(b => ({ name: b.blob_name, size: parseInt(b.size, 10) || 0, owner: b.owner, chunksets: parseInt(b.num_chunksets, 10) || 0, created: b.created_at, expires: b.expires_at, isDeleted: b.is_deleted, isWritten: b.is_written })),

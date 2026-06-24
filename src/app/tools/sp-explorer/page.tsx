@@ -46,6 +46,10 @@ export default async function SPExplorerPage({ searchParams }: { searchParams: P
           <span className="text-sm shrink-0 mt-0.5">📊</span>
           <p className="text-xs sm:text-sm text-text2 leading-relaxed">{insight}</p>
         </div>
+        <div className="flex gap-4 mt-3 pt-3 border-t border-border text-xs text-text3">
+          <span>近 7 日新增 <strong className="text-text">{fmtN(d.growth.weekBlobs)}</strong> blobs（{fmtB(d.growth.weekSize)}）</span>
+          <span>近 24h 新增 <strong className="text-text">{fmtN(d.growth.dayBlobs)}</strong> blobs（{fmtB(d.growth.daySize)}）</span>
+        </div>
       </div>
 
       {d.error && <div className="p-4 border border-red-500/30 bg-red-500/5 rounded-lg text-sm text-red-400 mb-6">{d.error}</div>}
