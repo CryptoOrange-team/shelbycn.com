@@ -38,12 +38,13 @@ export interface ShelbyNetworkData {
   blobCount: number; totalSize: number; activityCount: number;
   status: NetStatus | null;
   events: { name: string; owner: string; type: string; time: string; hash?: string }[];
+  recentBlobs: BlobItem[];
   topBlobs: BlobItem[];
   error: string | null;
 }
 
 function emptyData(error: string): ShelbyNetworkData {
-  return { nodes: [], totalSPs: 0, activeSPs: 0, totalSlots: 0, activeSlots: 0, blobCount: 0, totalSize: 0, activityCount: 0, status: null, events: [], topBlobs: [], error };
+  return { nodes: [], totalSPs: 0, activeSPs: 0, totalSlots: 0, activeSlots: 0, blobCount: 0, totalSize: 0, activityCount: 0, status: null, events: [], recentBlobs: [], topBlobs: [], error };
 }
 
 // ── Main Query ──
@@ -56,7 +57,8 @@ export async function getShelbyData(sort: string = "active", search: string = ""
       blobs_aggregate { aggregate { count sum { size } } }
       blob_activities_aggregate { aggregate { count } }
       blob_activities(order_by: { timestamp: desc }, limit: 25) { blob_name owner event_type timestamp transaction_hash }
-      blobs(order_by: { size: desc }, limit: 10) { blob_name size owner created_at num_chunksets }
+      top_blobs: blobs(order_by: { size: desc }, limit: 50) { blob_name size owner created_at num_chunksets }
+      recent_blobs: blobs(order_by: { created_at: desc }, limit: 30) { blob_name size owner created_at num_chunksets }
       processor_status(limit: 1, order_by: { last_updated: desc }) { last_success_version last_transaction_timestamp last_updated }
     }
   `;
@@ -65,7 +67,8 @@ export async function getShelbyData(sort: string = "active", search: string = ""
     const data = await gf(query);
     const slots: SlotRow[] = data.placement_group_slots ?? [];
     const events: EventRow[] = data.blob_activities ?? [];
-    const topBlobs: BlobRow[] = data.blobs ?? [];
+    const topBlobs: BlobRow[] = data.top_blobs ?? [];
+    const recentBlobsRaw: BlobRow[] = data.recent_blobs ?? [];
     const ps: PSRow[] = data.processor_status ?? [];
 
     // Aggregate SPs
@@ -87,6 +90,7 @@ export async function getShelbyData(sort: string = "active", search: string = ""
       activityCount: data.blob_activities_aggregate?.aggregate?.count ?? 0,
       status: ps.length > 0 ? { lastVersion: parseInt(ps[0].last_success_version, 10), lastTxnTime: ps[0].last_transaction_timestamp, lastUpdated: ps[0].last_updated } : null,
       events: events.map(e => ({ name: e.blob_name, owner: e.owner, type: e.event_type.split("::").pop()?.replace("Event", "") ?? "", time: e.timestamp, hash: e.transaction_hash })),
+      recentBlobs: recentBlobsRaw.map(b => ({ name: b.blob_name, size: parseInt(b.size, 10) || 0, owner: b.owner, chunksets: parseInt(b.num_chunksets, 10) || 0, created: b.created_at })),
       topBlobs: topBlobs.map(b => ({ name: b.blob_name, size: parseInt(b.size, 10) || 0, owner: b.owner, chunksets: parseInt(b.num_chunksets, 10) || 0, created: b.created_at })),
       error: null,
     };

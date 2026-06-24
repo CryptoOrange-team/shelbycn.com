@@ -85,7 +85,7 @@ export default async function SPExplorerPage({ searchParams }: { searchParams: P
 
       {/* Tab Content */}
       {tab === "sp" && <SPTable nodes={d.nodes} search={search} />}
-      {tab === "blobs" && <><BlobTable blobs={d.topBlobs} /><FileTypeStats blobs={d.topBlobs} /></>}
+      {tab === "blobs" && <BlobTab topBlobs={d.topBlobs} recentBlobs={d.recentBlobs} />}
       {tab === "events" && <EventsTable events={d.events} />}
       {tab === "price" && <PriceComparison activeSlots={d.activeSlots} totalSize={d.totalSize} />}
 
@@ -133,10 +133,23 @@ function SPTable({ nodes, search }: { nodes: { address: string; activeSlots: num
   );
 }
 
-function BlobTable({ blobs }: { blobs: { name: string; size: number; owner: string; chunksets: number; created: string }[] }) {
+function BlobTab({ topBlobs, recentBlobs }: { topBlobs: { name: string; size: number; owner: string; chunksets: number; created: string }[]; recentBlobs: { name: string; size: number; owner: string; chunksets: number; created: string }[] }) {
+  return (
+    <>
+      <h2 className="text-sm font-extrabold mb-3 mt-2">最新上传（30 条）</h2>
+      <p className="text-xs text-text2 mb-3">按上传时间倒序。文件名、大小、分片数——实时追踪网络中新数据的流入。</p>
+      <BlobTable blobs={recentBlobs} showTime />
+      <h2 className="text-sm font-extrabold mb-3 mt-10">最大 Blobs（Top 50）</h2>
+      <p className="text-xs text-text2 mb-3">按文件大小排名。</p>
+      <BlobTable blobs={topBlobs} />
+      <FileTypeStats blobs={topBlobs} />
+    </>
+  );
+}
+
+function BlobTable({ blobs, showTime }: { blobs: { name: string; size: number; owner: string; chunksets: number; created: string }[]; showTime?: boolean }) {
   return (
     <div>
-      <p className="text-xs text-text2 mb-3">按大小排名 — 前 50 个 Blobs。网络中的文件从 1.8PB 数据集到 2GB 视频都有。</p>
       <div className="border border-border rounded-lg overflow-x-auto">
         <table className="w-full text-xs">
           <thead><tr className="border-b border-border bg-surface text-left font-mono text-[10px] text-text3 uppercase tracking-wider">
@@ -144,16 +157,18 @@ function BlobTable({ blobs }: { blobs: { name: string; size: number; owner: stri
             <th className="py-2.5 px-2 font-medium">文件名</th>
             <th className="py-2.5 px-2 font-medium text-right">大小</th>
             <th className="py-2.5 px-2 font-medium">所有者</th>
-            <th className="py-2.5 pr-3 pl-2 font-medium text-right">分片</th>
+            <th className="py-2.5 px-2 font-medium text-right">分片</th>
+            {showTime && <th className="py-2.5 pr-3 pl-2 font-medium text-right">时间</th>}
           </tr></thead>
           <tbody>
             {blobs.map((b,i) => (
               <tr key={i} className="border-b border-border last:border-0 hover:bg-surface transition-colors">
                 <td className="py-2 pl-3 pr-2 font-mono text-text3">{i+1}</td>
-                <td className="py-2 px-2 text-text2 truncate max-w-[300px]" title={b.name}>{shortName(b.name)}</td>
+                <td className="py-2 px-2 text-text2 truncate max-w-[250px]" title={b.name}>{shortName(b.name)}</td>
                 <td className="py-2 px-2 font-mono text-accent font-semibold text-right">{fmtB(b.size)}</td>
                 <td className="py-2 px-2 font-mono text-text3 text-[10px]">{short(b.owner)}</td>
-                <td className="py-2 pr-3 pl-2 font-mono text-text3 text-right">{b.chunksets}</td>
+                <td className="py-2 px-2 font-mono text-text3 text-right">{b.chunksets}</td>
+                {showTime && <td className="py-2 pr-3 pl-2 font-mono text-text3 text-right text-[10px]">{ago(parseInt(b.created,10)/1000)}</td>}
               </tr>
             ))}
           </tbody>
