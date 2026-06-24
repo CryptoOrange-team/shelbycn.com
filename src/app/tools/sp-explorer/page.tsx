@@ -151,6 +151,27 @@ export default async function SPExplorerPage({ searchParams }: { searchParams: P
       {tab==="price"&&<PriceComparison totalSize={d.totalSize}/>}
       {tab==="dev"&&<DevResources />}
 
+      {tab==="sp"&&d.nodes.length>0&&!search&&(
+        <div className="mt-6 p-4 rounded-xl border border-border bg-surface/50 backdrop-blur">
+          <h2 className="text-xs font-semibold text-text3 uppercase tracking-wider mb-3">SP 对比 · 活跃槽位</h2>
+          <div className="space-y-1.5">
+            {d.nodes.slice(0,10).map(sp=>{
+              const maxSlots = Math.max(...d.nodes.map(n=>n.activeSlots),1);
+              const w = (sp.activeSlots/maxSlots)*100;
+              return (
+                <div key={sp.address} className="flex items-center gap-2 text-[10px]">
+                  <span className="font-mono text-text3 w-16 truncate">{short(sp.address)}</span>
+                  <div className="flex-1 h-3 bg-border rounded-full overflow-hidden">
+                    <div className="h-full bg-accent rounded-full" style={{width:`${w}%`}}/>
+                  </div>
+                  <span className="font-mono text-accent font-semibold w-6 text-right">{sp.activeSlots}</span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
       {search&&tab==="sp"&&d.nodes.length===0&&<div className="py-12 text-center text-text3 text-sm">未找到 &ldquo;{search}&rdquo;。</div>}
 
       <p className="font-mono text-[10px] text-text3 mt-10 text-right">ShelbyNet GraphQL · {new Date().toLocaleString("zh-CN")}</p>
@@ -264,7 +285,9 @@ function BlobTable({blobs,showTime}:{blobs:{name:string;size:number;owner:string
                 <td className="py-2 px-2 text-text2 truncate max-w-[180px] sm:max-w-[300px]" title={b.name}>{shortName(b.name)}</td>
                 <td className="py-2 px-2 font-mono text-accent font-semibold text-right">{fmtB(b.size)}</td>
                 <td className="py-2 px-2"><span className={`text-[9px] font-semibold px-1.5 py-0.5 rounded-sm border ${badgeStyle}`}>{badge}</span></td>
-                <td className="py-2 px-2 font-mono text-text3 text-[10px] hidden sm:table-cell">{short(b.owner)}</td>
+                <td className="py-2 px-2 font-mono text-text3 text-[10px] hidden sm:table-cell">
+                  <Link href={`/tools/sp-explorer/owner/${b.owner}`} className="hover:text-accent transition-colors">{short(b.owner)}</Link>
+                </td>
                 <td className="py-2 px-2 font-mono text-text3 text-right">{b.chunksets}</td>
                 {showTime&&<td className="py-2 pr-4 pl-2 font-mono text-text3 text-right text-[10px]">{ago(parseInt(b.created,10)/1000)}</td>}
               </tr>
@@ -382,13 +405,23 @@ function DevResources() {
         </div>
       </div>
 
-      <div className="p-4 rounded-xl border border-border bg-surface/70 backdrop-blur">
-        <h2 className="text-sm font-extrabold mb-2">关于 ShelbyNet</h2>
+      <div className="p-4 rounded-xl border border-border bg-surface/70 backdrop-blur space-y-3">
+        <div>
+          <h2 className="text-sm font-extrabold mb-2">REST API</h2>
+          <p className="text-xs text-text2 mb-2">程序化访问网络数据：</p>
+          <code className="font-mono text-[11px] text-accent bg-surface2 px-3 py-1.5 rounded select-all block">
+            GET /api/network-stats
+          </code>
+          <a href="/api/network-stats" target="_blank" className="font-mono text-[10px] text-text3 hover:text-accent transition-colors mt-1 inline-block">打开测试 →</a>
+        </div>
+        <div className="pt-3 border-t border-border">
+          <h2 className="text-sm font-extrabold mb-2">关于 ShelbyNet</h2>
         <p className="text-xs text-text2 leading-relaxed">
           ShelbyNet 是 Shelby 协议的公共测试网，由 Aptos Labs 和 Jump Crypto 维护。
           Data Plane 运行在 DoubleZero 光纤骨干上，Control Plane 由 Aptos 区块链提供结算和验证。
           测试网数据不具持久性保证——主网上线后可能重置。
         </p>
+        </div>
       </div>
     </div>
   );
