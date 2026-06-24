@@ -126,6 +126,7 @@ export default async function SPExplorerPage({ searchParams }: { searchParams: P
           {key:"sp",label:"SP 节点"},{key:"blobs",label:"Blob 排行"},
           {key:"events",label:"实时事件"},{key:"price",label:"成本对比"},
           {key:"dev",label:"开发者"},
+          <a key="map" href="/tools/sp-explorer/map" className="shrink-0 px-3 sm:px-4 py-2 text-xs sm:text-sm font-semibold border-b-2 border-transparent text-text3 hover:text-text2 transition-colors">🗺 地图</a>,
         ].map(t=>(
           <a key={t.key} href={`?tab=${t.key}&sort=${sort}`}
             className={`shrink-0 px-3 sm:px-4 py-2 text-xs sm:text-sm font-semibold border-b-2 transition-colors ${
