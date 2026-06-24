@@ -10,7 +10,7 @@ function gh(): Record<string, string> {
 }
 async function gf(query: string, variables?: Record<string, unknown>) {
   if (!gk()) throw new Error("API key not configured");
-  const res = await fetch(ENDPOINT, { method: "POST", headers: gh(), body: JSON.stringify({ query, variables }), next: { revalidate: 120 } });
+  const res = await fetch(ENDPOINT, { method: "POST", headers: gh(), body: JSON.stringify({ query, variables }), cache: "no-store" });
   if (!res.ok) throw new Error(`GraphQL ${res.status}`);
   const json = await res.json();
   if (json.errors) throw new Error(json.errors[0]?.message ?? "GraphQL error");
