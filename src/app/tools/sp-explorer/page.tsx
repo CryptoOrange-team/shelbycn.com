@@ -118,6 +118,7 @@ export default async function SPExplorerPage({ searchParams }: { searchParams: P
         {[
           {key:"sp",label:"SP 节点"},{key:"blobs",label:"Blob 排行"},
           {key:"events",label:"实时事件"},{key:"price",label:"成本对比"},
+          {key:"dev",label:"开发者"},
         ].map(t=>(
           <a key={t.key} href={`?tab=${t.key}&sort=${sort}`}
             className={`shrink-0 px-3 sm:px-4 py-2 text-xs sm:text-sm font-semibold border-b-2 transition-colors ${
@@ -148,6 +149,7 @@ export default async function SPExplorerPage({ searchParams }: { searchParams: P
       {tab==="blobs"&&<BlobTab topBlobs={d.topBlobs} recentBlobs={d.recentBlobs}/>}
       {tab==="events"&&<EventsTable events={d.events}/>}
       {tab==="price"&&<PriceComparison totalSize={d.totalSize}/>}
+      {tab==="dev"&&<DevResources />}
 
       {search&&tab==="sp"&&d.nodes.length===0&&<div className="py-12 text-center text-text3 text-sm">未找到 &ldquo;{search}&rdquo;。</div>}
 
@@ -327,6 +329,66 @@ function EventsTable({events}:{events:{name:string;owner:string;type:string;time
             })}
           </tbody>
         </table>
+      </div>
+    </div>
+  );
+}
+
+// ── Price Comparison ──
+// ── Developer Resources ──
+function DevResources() {
+  const links = [
+    { title: "Shelby 官网", desc: "项目主页", href: "https://shelby.xyz" },
+    { title: "开发文档", desc: "SDK、CLI、API 参考", href: "https://docs.shelby.xyz" },
+    { title: "GitHub", desc: "示例代码和 SDK 源码", href: "https://github.com/shelby/examples" },
+    { title: "Early Access", desc: "申请开发者权限", href: "https://developers.shelby.xyz" },
+    { title: "Discord", desc: "官方社区讨论", href: "https://discord.gg/shelbyserves" },
+    { title: "X / Twitter", desc: "@shelbyserves", href: "https://x.com/shelbyserves" },
+  ];
+  const pkgs = [
+    { name: "@shelby-protocol/sdk", desc: "TypeScript SDK", cmd: "npm install @shelby-protocol/sdk" },
+    { name: "@shelby-protocol/cli", desc: "命令行工具", cmd: "npm install -g @shelby-protocol/cli" },
+    { name: "shelby-mcp", desc: "AI Agent MCP Server", cmd: "npx shelbymcp" },
+    { name: "x402s", desc: "x402 支付桥接", cmd: "npm install x402s" },
+  ];
+
+  return (
+    <div className="space-y-8">
+      <div>
+        <h2 className="text-sm font-extrabold mb-4">开发者资源</h2>
+        <div className="grid sm:grid-cols-2 gap-3">
+          {links.map(l => (
+            <a key={l.href} href={l.href} target="_blank" rel="noopener noreferrer"
+              className="p-4 rounded-xl border border-border bg-surface/70 backdrop-blur hover:border-accent/30 hover:bg-surface transition-all group">
+              <h3 className="font-bold text-sm mb-1 group-hover:text-accent transition-colors">{l.title}</h3>
+              <p className="text-xs text-text3">{l.desc}</p>
+            </a>
+          ))}
+        </div>
+      </div>
+
+      <div>
+        <h2 className="text-sm font-extrabold mb-4">SDK 安装</h2>
+        <div className="space-y-2">
+          {pkgs.map(p => (
+            <div key={p.name} className="p-4 rounded-xl border border-border bg-surface/70 backdrop-blur flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <div>
+                <span className="font-mono text-xs text-accent font-semibold">{p.name}</span>
+                <span className="text-xs text-text3 ml-2">{p.desc}</span>
+              </div>
+              <code className="font-mono text-[11px] text-text2 bg-surface2 px-3 py-1 rounded select-all">{p.cmd}</code>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="p-4 rounded-xl border border-border bg-surface/70 backdrop-blur">
+        <h2 className="text-sm font-extrabold mb-2">关于 ShelbyNet</h2>
+        <p className="text-xs text-text2 leading-relaxed">
+          ShelbyNet 是 Shelby 协议的公共测试网，由 Aptos Labs 和 Jump Crypto 维护。
+          Data Plane 运行在 DoubleZero 光纤骨干上，Control Plane 由 Aptos 区块链提供结算和验证。
+          测试网数据不具持久性保证——主网上线后可能重置。
+        </p>
       </div>
     </div>
   );
