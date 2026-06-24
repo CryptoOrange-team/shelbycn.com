@@ -46,9 +46,37 @@ export default async function SPExplorerPage({ searchParams }: { searchParams: P
           <span className="text-sm shrink-0 mt-0.5">📊</span>
           <p className="text-xs sm:text-sm text-text2 leading-relaxed">{insight}</p>
         </div>
-        <div className="flex gap-4 mt-3 pt-3 border-t border-border text-xs text-text3">
+        <div className="flex flex-wrap gap-x-4 gap-y-1 mt-3 pt-3 border-t border-border text-xs text-text3">
           <span>近 7 日新增 <strong className="text-text">{fmtN(d.growth.weekBlobs)}</strong> blobs（{fmtB(d.growth.weekSize)}）</span>
           <span>近 24h 新增 <strong className="text-text">{fmtN(d.growth.dayBlobs)}</strong> blobs（{fmtB(d.growth.daySize)}）</span>
+          <span>24h 新增占比 <strong className="text-accent">{d.blobCount > 0 ? ((d.growth.dayBlobs/d.blobCount)*100).toFixed(1) : "0"}%</strong></span>
+        </div>
+      </div>
+
+      {/* Growth Visual */}
+      <div className="mb-6 p-4 rounded-xl border border-border bg-surface/50 backdrop-blur">
+        <div className="text-xs font-semibold text-text3 uppercase tracking-wider mb-3">存储增长分布</div>
+        <div className="space-y-2">
+          {(() => {
+            const oldPct = d.blobCount > 0 ? ((d.blobCount - d.growth.weekBlobs)/d.blobCount)*100 : 0;
+            const weekPct = d.blobCount > 0 ? ((d.growth.weekBlobs - d.growth.dayBlobs)/d.blobCount)*100 : 0;
+            const dayPct = d.blobCount > 0 ? (d.growth.dayBlobs/d.blobCount)*100 : 0;
+            const items = [
+              { label: "早期 (>7天)", pct: oldPct, count: d.blobCount - d.growth.weekBlobs, color: "bg-border" },
+              { label: "近 7 天", pct: weekPct, count: d.growth.weekBlobs - d.growth.dayBlobs, color: "bg-blue-400/60" },
+              { label: "近 24h", pct: dayPct, count: d.growth.dayBlobs, color: "bg-accent" },
+            ];
+            return items.map(item => (
+              <div key={item.label} className="flex items-center gap-3">
+                <span className="text-[10px] text-text3 w-20 shrink-0">{item.label}</span>
+                <div className="flex-1 h-4 bg-border rounded-full overflow-hidden">
+                  <div className={`h-full ${item.color} rounded-full transition-all`} style={{width:`${Math.max(1,item.pct)}%`}}/>
+                </div>
+                <span className="font-mono text-[10px] text-text2 w-16 text-right">{fmtN(item.count)}</span>
+                <span className="font-mono text-[10px] text-text3 w-10 text-right">{item.pct.toFixed(1)}%</span>
+              </div>
+            ));
+          })()}
         </div>
       </div>
 
